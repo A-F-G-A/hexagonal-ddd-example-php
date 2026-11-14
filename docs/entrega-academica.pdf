@@ -1,0 +1,269 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R 8 0 R] /Count 3 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1762>>
+stream
+BT
+/F1 10 Tf
+50 750 Td
+14 TL
+(PORTADA) Tj
+T*
+() Tj
+T*
+(Universidad de Cartagena) Tj
+T*
+() Tj
+T*
+(Programa: Ingenieria de Software) Tj
+T*
+() Tj
+T*
+(Asignatura: Desarrollo Web) Tj
+T*
+() Tj
+T*
+(Unidad 2) Tj
+T*
+() Tj
+T*
+(Actividad: Ejercicio 11 - Celular) Tj
+T*
+() Tj
+T*
+(Estudiante: Andres Felipe Guzman Arrieta) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(DESCRIPCION) Tj
+T*
+() Tj
+T*
+(Plataforma web para gestionar usuarios y un catalogo tecnico de celulares. El trabajo) Tj
+T*
+(evoluciona el CRUD PHP del repositorio docente y conserva la arquitectura hexagonal y) Tj
+T*
+(sus capas originales.) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(ARQUITECTURA) Tj
+T*
+() Tj
+T*
+(Domain contiene entidades, value objects y reglas. Application contiene servicios,) Tj
+T*
+(Commands, Queries y puertos. Infrastructure adapta HTTP, MySQL y correo. Common conserva) Tj
+T*
+(la carga de clases y composicion manual. El mismo caso de uso se utiliza desde la web y) Tj
+T*
+(la API.) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(MODELO DE DATOS) Tj
+T*
+() Tj
+T*
+(La tabla users conserva las cuentas del CRUD previo. celulares almacena los atributos) Tj
+T*
+(escalares y celular_imeis representa uno o dos IMEI por equipo. La clave primaria IMEI) Tj
+T*
+(evita duplicados globales; la relacion en cascada elimina sus filas al borrar un) Tj
+T*
+(celular. Tokens API, restablecimientos de clave, rate limits y actividad tienen tablas) Tj
+T*
+(separadas.) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(FUNCIONALIDADES) Tj
+T*
+() Tj
+T*
+(CRUD de usuarios con paginacion y administracion restringida. CRUD de celulares con) Tj
+T*
+(veinte atributos, validacion Luhn, compatibilidad con una o dos SIM, filtros, busqueda,) Tj
+T*
+(orden y paginacion. Dashboard, roles, API REST Bearer, historial de actividad, Docker) Tj
+T*
+(Pagina 1 de 3) Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 1918>>
+stream
+BT
+/F1 10 Tf
+50 750 Td
+14 TL
+(Compose y pipeline CI.) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(SEGURIDAD) Tj
+T*
+() Tj
+T*
+(Permisos comprobados en servidor. Formularios protegidos con CSRF; cookies de sesion) Tj
+T*
+(HttpOnly y SameSite; regeneracion y expiracion de sesion; rate limiting de) Tj
+T*
+(autenticacion; tokens temporales de recuperacion de un solo uso; contrasenas con bcrypt.) Tj
+T*
+(Los tokens API se guardan como hashes.) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(PRUEBAS Y EVIDENCIAS) Tj
+T*
+() Tj
+T*
+(La suite php tests/run.php usa doubles para reglas de dominio, permisos, servicios y) Tj
+T*
+(mapeo. La verificacion final local registra 61 aserciones correctas y lint sin errores) Tj
+T*
+(en 123 archivos PHP de la aplicacion y herramientas. Una solicitud HTTP local a la vista) Tj
+T*
+(de inicio de sesion respondio 200 e incluyo el token CSRF y cabeceras de seguridad.) Tj
+T*
+(GitHub Actions incluye lint, pruebas unitarias, migracion en MySQL efimero, pruebas de) Tj
+T*
+(integracion y construccion Docker.) Tj
+T*
+() Tj
+T*
+(En este entorno no hay servidor MySQL ni Docker disponibles. Por ello, las pruebas de) Tj
+T*
+(integracion, la migracion real y la construccion de imagen quedan pendientes de) Tj
+T*
+(ejecucion en CI o en un host con dichos servicios.) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(REPOSITORIO Y DESPLIEGUE) Tj
+T*
+() Tj
+T*
+(Repositorio publico esperado: https://github.com/AFGA/hexagonal-ddd-example-php) Tj
+T*
+() Tj
+T*
+(URL de despliegue: no configurada.) Tj
+T*
+() Tj
+T*
+(Enlaces de sustentacion: no disponibles.) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(DATOS ACADEMICOS NO CONFIRMADOS) Tj
+T*
+() Tj
+T*
+(No se incluye semestre porque no fue confirmado. No se agregan tutor, correo) Tj
+T*
+(institucional, fecha ni enlaces no proporcionados.) Tj
+T*
+() Tj
+T*
+() Tj
+T*
+() Tj
+T*
+(DOCUMENTACION) Tj
+T*
+() Tj
+T*
+(README.md describe configuracion y ejecucion. docs/architecture.md registra las) Tj
+T*
+(Pagina 2 de 3) Tj
+ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 9 0 R >>
+endobj
+9 0 obj
+<< /Length 274>>
+stream
+BT
+/F1 10 Tf
+50 750 Td
+14 TL
+(decisiones, docs/data-model.md el esquema, docs/security.md los controles y) Tj
+T*
+(limitaciones, docs/openapi.yaml el contrato API y docs/guion-sustentacion.md propone el) Tj
+T*
+(recorrido de demostracion.) Tj
+T*
+() Tj
+T*
+(Pagina 3 de 3) Tj
+ET
+endstream
+endobj
+xref
+0 10
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000133 00000 n 
+0000000230 00000 n 
+0000000356 00000 n 
+0000002169 00000 n 
+0000002295 00000 n 
+0000004264 00000 n 
+0000004390 00000 n 
+trailer << /Size 10 /Root 1 0 R >>
+startxref
+4714
+%%EOF

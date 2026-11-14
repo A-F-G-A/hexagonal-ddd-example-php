@@ -76,6 +76,5 @@ yarn-error.log*
 # Documentación tecnica, diagramas, manuales, pasos para montar el entorno de desarrollo, etc.
 
 
-docs/
 .vscode/settings.json
 *.ps1
