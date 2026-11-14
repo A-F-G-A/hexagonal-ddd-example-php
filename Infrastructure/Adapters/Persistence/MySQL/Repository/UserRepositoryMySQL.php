@@ -8,6 +8,7 @@ require_once __DIR__ . '/../../../../../Application/Ports/Out/GetUserByIdPort.ph
 require_once __DIR__ . '/../../../../../Application/Ports/Out/GetUserByEmailPort.php';
 require_once __DIR__ . '/../../../../../Application/Ports/Out/GetAllUsersPort.php';
 require_once __DIR__ . '/../../../../../Application/Ports/Out/DeleteUserPort.php';
+require_once __DIR__ . '/../../../../../Application/Ports/Out/GetActiveUserCountPort.php';
 
 require_once __DIR__ . '/../Mapper/UserPersistenceMapper.php';
 require_once __DIR__ . '/../../../../../Domain/Models/UserModel.php';
@@ -20,7 +21,8 @@ final class UserRepositoryMySQL implements
     GetUserByIdPort,
     GetUserByEmailPort,
     GetAllUsersPort,
-    DeleteUserPort
+    DeleteUserPort,
+    GetActiveUserCountPort
 {
     private PDO $pdo;
     private UserPersistenceMapper $mapper;
@@ -175,7 +177,7 @@ final class UserRepositoryMySQL implements
     /**
      * @return UserModel[]
      */
-    public function getAll(): array
+    public function getAll(int $limit = 100, int $offset = 0): array
     {
         $sql = '
             SELECT
@@ -189,12 +191,21 @@ final class UserRepositoryMySQL implements
                 updated_at
             FROM users
             ORDER BY name ASC
+            LIMIT :limit OFFSET :offset
         ';
 
-        $statement = $this->pdo->query($sql);
+        $statement = $this->pdo->prepare($sql);
+        $statement->bindValue(':limit', min(100, max(1, $limit)), PDO::PARAM_INT);
+        $statement->bindValue(':offset', max(0, $offset), PDO::PARAM_INT);
+        $statement->execute();
         $rows = $statement->fetchAll();
 
         return $this->mapper->fromRowsToModels($rows);
+    }
+
+    public function countAll(): int
+    {
+        return (int) $this->pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
     }
 
     public function delete(UserId $userId): void
@@ -205,5 +216,10 @@ final class UserRepositoryMySQL implements
         $statement->execute(array(
             ':id' => $userId->value(),
         ));
+    }
+
+    public function countActive(): int
+    {
+        return (int) $this->pdo->query("SELECT COUNT(*) FROM users WHERE status = 'ACTIVE'")->fetchColumn();
     }
 }
