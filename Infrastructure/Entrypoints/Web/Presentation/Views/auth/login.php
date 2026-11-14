@@ -1,4 +1,5 @@
 <?php require __DIR__ . '/../layouts/header.php'; ?>
+<?php require __DIR__ . '/../layouts/menu.php'; ?>
 
 <div class="auth-box">
     <h1>Iniciar sesión</h1>
@@ -10,6 +11,7 @@
     <?php endif; ?>
 
     <form method="POST" action="?route=auth.authenticate">
+        <input type="hidden" name="_csrf" value="<?= htmlspecialchars(Security::csrfToken(), ENT_QUOTES, 'UTF-8') ?>">
         <div class="form-group">
             <label for="email">Correo electrónico</label><br>
             <input type="email" id="email" name="email"
