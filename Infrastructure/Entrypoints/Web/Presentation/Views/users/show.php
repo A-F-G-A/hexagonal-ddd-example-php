@@ -33,8 +33,9 @@
 </table>
 
 <p style="margin-top: 16px;">
-    <a class="btn btn-warning" href="?route=users.edit&amp;id=<?= urlencode($user->getId()) ?>">Editar</a>
-    &nbsp;
+    <?php if (RolePermissions::allows((string) ($_SESSION['auth']['role'] ?? ''), 'users.write')): ?>
+        <a class="btn btn-primary" href="?route=users.edit&amp;id=<?= urlencode($user->getId()) ?>">Editar</a>
+    <?php endif; ?>
     <a class="btn" href="?route=users.index">Volver al listado</a>
 </p>
 
