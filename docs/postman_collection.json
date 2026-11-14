@@ -1,0 +1,33 @@
+{
+  "info": {
+    "name": "Móvil Admin API v1",
+    "description": "Endpoints JSON protegidos con token Bearer. Crea un token con bin/create-api-token.php y guárdalo en la variable secreta api_token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{"key": "token", "value": "{{api_token}}", "type": "string"}]
+  },
+  "variable": [
+    {"key": "base_url", "value": "http://localhost/api/v1"},
+    {"key": "api_token", "value": "", "type": "secret"},
+    {"key": "celular_id", "value": ""},
+    {"key": "user_id", "value": ""}
+  ],
+  "item": [
+    {"name": "Celulares", "item": [
+      {"name": "Listar y filtrar celulares", "request": {"method": "GET", "url": "{{base_url}}/celulares?page=1&per_page=20&q=Samsung&nfc=1"}},
+      {"name": "Consultar celular", "request": {"method": "GET", "url": "{{base_url}}/celulares/{{celular_id}}"}},
+      {"name": "Crear celular", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"marca\": \"Ejemplo\",\n  \"imei\": [\"490154203237518\"],\n  \"pulgadas\": 6.7,\n  \"megapixeles\": 50,\n  \"ram\": 8,\n  \"almacenamientoPrincipal\": 256,\n  \"almacenamientoSecundario\": 0,\n  \"sistemaOperativo\": \"Android\",\n  \"operador\": \"Libre\",\n  \"tecnologiaBanda\": \"5G\",\n  \"wifi\": true,\n  \"bluetooth\": true,\n  \"camaras\": 3,\n  \"marcaCpu\": \"Qualcomm\",\n  \"velocidadCpu\": 3.2,\n  \"nfc\": true,\n  \"huella\": true,\n  \"ir\": false,\n  \"resisteAgua\": true,\n  \"cantidadSim\": 1\n}"}, "url": "{{base_url}}/celulares"}},
+      {"name": "Actualizar celular", "request": {"method": "PUT", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{{celular_json_completo}}"}, "url": "{{base_url}}/celulares/{{celular_id}}"}},
+      {"name": "Eliminar celular", "request": {"method": "DELETE", "url": "{{base_url}}/celulares/{{celular_id}}"}}
+    ]},
+    {"name": "Usuarios", "item": [
+      {"name": "Listar usuarios", "request": {"method": "GET", "url": "{{base_url}}/users?page=1&per_page=20"}},
+      {"name": "Consultar usuario", "request": {"method": "GET", "url": "{{base_url}}/users/{{user_id}}"}},
+      {"name": "Crear usuario (ADMIN)", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"name\": \"Operador\",\n  \"email\": \"operador@example.com\",\n  \"password\": \"cambia-esta-frase-segura\",\n  \"role\": \"OPERADOR\"\n}"}, "url": "{{base_url}}/users"}},
+      {"name": "Actualizar usuario (ADMIN)", "request": {"method": "PUT", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{{user_json_completo}}"}, "url": "{{base_url}}/users/{{user_id}}"}},
+      {"name": "Eliminar usuario (ADMIN)", "request": {"method": "DELETE", "url": "{{base_url}}/users/{{user_id}}"}}
+    ]}
+  ]
+}
