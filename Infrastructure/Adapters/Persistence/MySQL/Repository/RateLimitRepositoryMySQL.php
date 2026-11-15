@@ -83,4 +83,22 @@ final class RateLimitRepositoryMySQL implements RateLimitPort
         $statement = $this->pdo->prepare('DELETE FROM auth_rate_limits WHERE scope_key = :key');
         $statement->execute(array(':key' => $keyHash));
     }
+
+    /** Delete a bounded batch of buckets that cannot still be enforcing a quota. */
+    public function pruneExpired(int $batchSize = 1000): int
+    {
+        if ($batchSize < 1 || $batchSize > 10000) {
+            throw new InvalidArgumentException('El tamaño del lote debe estar entre 1 y 10000.');
+        }
+
+        $statement = $this->pdo->prepare(
+            'DELETE FROM auth_rate_limits ' .
+            'WHERE window_started_at < UTC_TIMESTAMP() - INTERVAL 1 DAY ' .
+            'AND (blocked_until IS NULL OR blocked_until <= UTC_TIMESTAMP()) ' .
+            'ORDER BY updated_at ASC LIMIT :batch_size'
+        );
+        $statement->bindValue(':batch_size', $batchSize, PDO::PARAM_INT);
+        $statement->execute();
+        return $statement->rowCount();
+    }
 }

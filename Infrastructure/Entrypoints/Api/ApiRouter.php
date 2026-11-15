@@ -17,21 +17,31 @@ final class ApiRouter
             self::respond(404, self::error('not_found', 'El recurso solicitado no existe.'));
         }
 
-        $remoteAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
-        $rateLimits = DependencyInjection::getRateLimitService();
-        if (!$rateLimits->allow('api:ip:' . $remoteAddress, 300, 60)) {
-            header('Retry-After: 60');
-            self::respond(429, self::error('rate_limited', 'Se excedió el límite de solicitudes. Inténtalo de nuevo en un minuto.'));
-        }
+        try {
+            $remoteAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+            $rateLimits = DependencyInjection::getRateLimitService();
+            if (!$rateLimits->allow('api:ip:' . $remoteAddress, 300, 60)) {
+                header('Retry-After: 60');
+                self::respond(429, self::error('rate_limited', 'Se excedió el límite de solicitudes. Inténtalo de nuevo en un minuto.'));
+            }
 
-        $token = self::bearerToken();
-        $identity = $token === null ? null : DependencyInjection::getApiTokenService()->authenticate($token);
+            $token = self::bearerToken();
+            $identity = $token === null ? null : DependencyInjection::getApiTokenService()->authenticate($token);
+        } catch (Throwable $exception) {
+            error_log('API authentication infrastructure failed: ' . get_class($exception));
+            self::respond(503, self::error('service_unavailable', 'El servicio no está disponible temporalmente.'));
+        }
         if ($identity === null) {
             self::respond(401, self::error('unauthorized', 'Se requiere un token Bearer válido y vigente.'));
         }
-        if (!$rateLimits->allow('api:user:' . $identity['id'], 120, 60)) {
-            header('Retry-After: 60');
-            self::respond(429, self::error('rate_limited', 'Se excedió el límite de solicitudes. Inténtalo de nuevo en un minuto.'));
+        try {
+            if (!$rateLimits->allow('api:user:' . $identity['id'], 120, 60)) {
+                header('Retry-After: 60');
+                self::respond(429, self::error('rate_limited', 'Se excedió el límite de solicitudes. Inténtalo de nuevo en un minuto.'));
+            }
+        } catch (Throwable $exception) {
+            error_log('API identity rate limit failed: ' . get_class($exception));
+            self::respond(503, self::error('service_unavailable', 'El servicio no está disponible temporalmente.'));
         }
 
         $resource = $segments[0];

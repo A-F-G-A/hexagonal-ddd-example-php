@@ -46,7 +46,10 @@ $assert = static function (bool $condition, string $message) use (&$assertions):
 
 $userSaved = false;
 $celularSaved = false;
+$raceAdminSaved = false;
 $limitKey = hash('sha256', random_bytes(32));
+$expiredLimitKey = hash('sha256', random_bytes(32));
+$activeLimitKey = hash('sha256', random_bytes(32));
 try {
     $user = new UserModel(
         new UserId($userId),
@@ -83,6 +86,77 @@ try {
     $assert($users->getByEmail(new UserEmail($email)) !== null, 'user insert and lookup');
     $assert($users->countActive() > 0, 'active user count');
     $assert(count($users->getAll(1, 0)) <= 1 && $users->countAll() > 0, 'bounded user pagination');
+
+    if ($activeAdminCount === 1 && function_exists('proc_open')) {
+        $raceAdminId = Uuid::v4();
+        $raceAdminEmail = 'integration-race+' . bin2hex(random_bytes(6)) . '@example.test';
+        $raceAdmin = new UserModel(
+            new UserId($raceAdminId), new UserName('Concurrent Admin'), new UserEmail($raceAdminEmail),
+            UserPassword::fromPlainText('concurrent-password-123'), UserRoleEnum::ADMIN, UserStatusEnum::ACTIVE
+        );
+        $users->save($raceAdmin);
+        $raceAdminSaved = true;
+
+        $syncPrefix = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'admin-race-' . bin2hex(random_bytes(8));
+        $readyFile = $syncPrefix . '.ready';
+        $attemptingFile = $syncPrefix . '.attempting';
+        $releaseFile = $syncPrefix . '.release';
+        $workerScript = __DIR__ . '/concurrent_admin_worker.php';
+        $descriptors = array(0 => array('pipe', 'r'), 1 => array('pipe', 'w'), 2 => array('pipe', 'w'));
+        $firstWorker = proc_open(array(PHP_BINARY, $workerScript, 'hold-and-demote', $userId, $readyFile, $releaseFile), $descriptors, $firstPipes);
+        if (!is_resource($firstWorker)) {
+            throw new RuntimeException('Could not start the first concurrent administrator worker.');
+        }
+        fclose($firstPipes[0]);
+        $readyDeadline = microtime(true) + 10;
+        while (!is_file($readyFile) && microtime(true) < $readyDeadline) {
+            usleep(10000);
+        }
+        if (!is_file($readyFile)) {
+            file_put_contents($releaseFile, 'release');
+            throw new RuntimeException('The first concurrent administrator worker did not acquire its lock.');
+        }
+
+        $secondWorker = proc_open(array(PHP_BINARY, $workerScript, 'demote-through-repository', $raceAdminId, $attemptingFile), $descriptors, $secondPipes);
+        if (!is_resource($secondWorker)) {
+            file_put_contents($releaseFile, 'release');
+            throw new RuntimeException('Could not start the second concurrent administrator worker.');
+        }
+        fclose($secondPipes[0]);
+        $attemptDeadline = microtime(true) + 10;
+        while (!is_file($attemptingFile) && microtime(true) < $attemptDeadline) {
+            usleep(10000);
+        }
+        usleep(100000);
+        $secondWasWaiting = is_file($attemptingFile) && proc_get_status($secondWorker)['running'];
+        file_put_contents($releaseFile, 'release');
+
+        $firstOutput = trim((string) stream_get_contents($firstPipes[1]));
+        $firstError = trim((string) stream_get_contents($firstPipes[2]));
+        fclose($firstPipes[1]);
+        fclose($firstPipes[2]);
+        $firstExit = proc_close($firstWorker);
+        $secondOutput = trim((string) stream_get_contents($secondPipes[1]));
+        $secondError = trim((string) stream_get_contents($secondPipes[2]));
+        fclose($secondPipes[1]);
+        fclose($secondPipes[2]);
+        $secondExit = proc_close($secondWorker);
+        @unlink($readyFile);
+        @unlink($attemptingFile);
+        @unlink($releaseFile);
+
+        $assert($firstExit === 0 && $firstOutput === 'committed', 'first MySQL connection commits while holding the administrator lock');
+        $assert($secondWasWaiting && $secondExit === 0 && $secondOutput === 'last-admin-denied', 'second MySQL connection waits, then rejects demotion of the last remaining administrator');
+        if ($firstError !== '' || $secondError !== '') {
+            throw new RuntimeException('Concurrent worker stderr: ' . $firstError . ' ' . $secondError);
+        }
+
+        $users->update(new UserModel(
+            $user->id(), $user->name(), $user->email(), $user->password(), UserRoleEnum::ADMIN, UserStatusEnum::ACTIVE
+        ));
+        $users->delete(new UserId($raceAdminId));
+        $raceAdminSaved = false;
+    }
 
     $celular = new Celular(
         $celularId, 'Integration Device', array($imei), '6.70', '50.00', 8, 256, 0,
@@ -121,16 +195,36 @@ try {
 
     $resetToken = bin2hex(random_bytes(32));
     $reset->issue($userId, hash('sha256', $resetToken), gmdate('Y-m-d H:i:s', time() + 600));
+    $originalPasswordHash = $user->password()->value();
     $newPasswordHash = UserPassword::fromPlainText('new-integration-password-456')->value();
     $assert($reset->consumeAndReplacePassword(hash('sha256', $resetToken), $newPasswordHash), 'reset token atomically updates password');
     $assert(!$reset->consumeAndReplacePassword(hash('sha256', $resetToken), $newPasswordHash), 'reset token is one time');
-    $assert($users->getByEmail(new UserEmail($email))->password()->verifyPlain('new-integration-password-456'), 'reset password hash verifies');
+    $afterReset = $users->getByEmail(new UserEmail($email));
+    $assert($afterReset->password()->verifyPlain('new-integration-password-456'), 'reset password hash verifies');
+    $restored = $users->update(new UserModel(
+        $afterReset->id(), $afterReset->name(), $afterReset->email(), UserPassword::fromHash($originalPasswordHash),
+        $afterReset->role(), $afterReset->status()
+    ));
+    $assert($restored->authorizationVersion() > $afterReset->authorizationVersion(), 'restoring prior security values still advances the authorization version');
 
     for ($attempt = 1; $attempt <= 5; $attempt++) {
         $assert($limits->consume($limitKey, 5, 900), 'rate limit permits attempt ' . $attempt);
     }
     $assert(!$limits->consume($limitKey, 5, 900), 'rate limit blocks attempt above threshold');
     $limits->clear($limitKey);
+    $limitFixtures = $pdo->prepare(
+        'INSERT INTO auth_rate_limits (scope_key, attempts, window_started_at, blocked_until) VALUES ' .
+        '(:expired, 1, UTC_TIMESTAMP() - INTERVAL 2 DAY, NULL), ' .
+        '(:active, 120, UTC_TIMESTAMP() - INTERVAL 2 DAY, UTC_TIMESTAMP() + INTERVAL 1 HOUR)'
+    );
+    $limitFixtures->execute(array(':expired' => $expiredLimitKey, ':active' => $activeLimitKey));
+    $limits->pruneExpired(1000);
+    $limitState = $pdo->prepare('SELECT COUNT(*) FROM auth_rate_limits WHERE scope_key = :key');
+    $limitState->execute(array(':key' => $expiredLimitKey));
+    $expiredDeleted = (int) $limitState->fetchColumn() === 0;
+    $limitState->execute(array(':key' => $activeLimitKey));
+    $blockedRetained = (int) $limitState->fetchColumn() === 1;
+    $assert($expiredDeleted && $blockedRetained, 'rate cleanup deletes stale buckets and preserves a currently blocked quota');
 
     $rawToken = 'cat_' . bin2hex(random_bytes(32));
     $tokenId = Uuid::v4();
@@ -151,6 +245,16 @@ try {
     if ($celularSaved) {
         $celulares->delete($celularId);
     }
+    if ($raceAdminSaved) {
+        $currentFixture = $users->getById(new UserId($userId));
+        if ($currentFixture !== null && ($currentFixture->role() !== UserRoleEnum::ADMIN || $currentFixture->status() !== UserStatusEnum::ACTIVE)) {
+            $users->update(new UserModel(
+                $currentFixture->id(), $currentFixture->name(), $currentFixture->email(), $currentFixture->password(),
+                UserRoleEnum::ADMIN, UserStatusEnum::ACTIVE
+            ));
+        }
+        $users->delete(new UserId($raceAdminId));
+    }
     if ($userSaved) {
         $remainingAdmins = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'ADMIN' AND status = 'ACTIVE'")->fetchColumn();
         if ($remainingAdmins > 1) {
@@ -160,4 +264,7 @@ try {
         }
     }
     $limits->clear($limitKey);
+    $pdo->prepare('DELETE FROM auth_rate_limits WHERE scope_key IN (:expired, :active)')->execute(array(
+        ':expired' => $expiredLimitKey, ':active' => $activeLimitKey,
+    ));
 }
