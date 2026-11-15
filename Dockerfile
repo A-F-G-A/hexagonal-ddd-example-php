@@ -6,12 +6,14 @@ RUN apt-get update \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /var/www/html
-COPY . /var/www/html
+COPY docker/apache-vhost.conf /etc/apache2/sites-available/000-default.conf
+RUN printf '%s\n' 'expose_php=Off' 'display_errors=Off' 'log_errors=On' > /usr/local/etc/php/conf.d/zz-app.ini
 
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R u=rwX,g=rX,o=rX /var/www/html
+WORKDIR /var/www/html
+COPY --chown=root:root . /var/www/html
+
+RUN chmod -R a=rX /var/www/html
 
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -fsS 'http://localhost/index.php?route=auth.login' || exit 1
+    CMD curl -fsS 'http://localhost/public/index.php?route=auth.login' || exit 1
