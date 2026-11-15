@@ -165,7 +165,7 @@ try {
     $celulares->save($celular);
     $celularSaved = true;
     $loaded = $celulares->getById($celularId);
-    $assert($loaded !== null && $loaded->imei() === array($imei), 'cellphone insert and IMEI hydration');
+    $assert($loaded !== null && $loaded->toArray() === $celular->toArray(), 'cellphone insert and hydration preserve all 20 attributes and types');
     $prefix = '35693803564380';
     $sum = 0;
     for ($index = 0; $index < 14; $index++) {
@@ -176,10 +176,12 @@ try {
     $secondImei = $prefix . ((10 - ($sum % 10)) % 10);
     $dualSim = new Celular(
         $celularId, 'Integration Device', array($imei, $secondImei), '6.70', '50.00', 8, 256, 0,
-        'Android', 'Libre', '5G', true, true, 3, 'Qualcomm', '3.20', true, true, false, true, 2
+        'Android', 'Libre', '5G', true, true, 3, 'Qualcomm', '3.20', true, true, false, false, 2
     );
     $celulares->update($dualSim);
-    $assert(count($celulares->getById($celularId)->imei()) === 2, 'transactional dual-SIM update');
+    $loadedAfterUpdate = $celulares->getById($celularId);
+    $assert($loadedAfterUpdate !== null && $loadedAfterUpdate->toArray() === $dualSim->toArray(), 'update persists and reloads all attributes, including resisteAgua=false');
+    $assert(count($loadedAfterUpdate->imei()) === 2, 'transactional dual-SIM update');
     $duplicateRejected = false;
     try {
         $celulares->save(new Celular(

@@ -20,7 +20,7 @@ final class CelularRepositoryMySQL implements CelularRepositoryPort
             $quotedColumns = implode(', ', $columns);
             $placeholders = implode(', ', array_map(static fn (string $column): string => ':' . $column, $columns));
             $statement = $this->pdo->prepare('INSERT INTO celulares (' . $quotedColumns . ') VALUES (' . $placeholders . ')');
-            $statement->execute($this->parameters($row));
+            $this->bindAndExecute($statement, $row);
             $this->writeImeis($celular);
             $this->pdo->commit();
             return $celular;
@@ -42,7 +42,7 @@ final class CelularRepositoryMySQL implements CelularRepositoryPort
             $statement = $this->pdo->prepare(
                 'UPDATE celulares SET ' . implode(', ', $assignments) . ', updated_at = CURRENT_TIMESTAMP WHERE id = :id'
             );
-            $statement->execute(array_merge($this->parameters($row), array(':id' => $celular->id())));
+            $this->bindAndExecute($statement, array_merge($row, array('id' => $celular->id())));
             $deleteImeis = $this->pdo->prepare('DELETE FROM celular_imeis WHERE celular_id = :id');
             $deleteImeis->execute(array(':id' => $celular->id()));
             $this->writeImeis($celular);
@@ -59,8 +59,12 @@ final class CelularRepositoryMySQL implements CelularRepositoryPort
     public function getById(string $id): ?Celular
     {
         $statement = $this->pdo->prepare('SELECT * FROM celulares WHERE id = :id LIMIT 1');
-        $statement->execute(array(':id' => $id));
-        $row = $statement->fetch();
+        try {
+            $statement->execute(array(':id' => $id));
+            $row = $statement->fetch();
+        } finally {
+            $statement->closeCursor();
+        }
         if ($row === false) {
             return null;
         }
@@ -77,8 +81,12 @@ final class CelularRepositoryMySQL implements CelularRepositoryPort
     {
         [$where, $parameters] = $this->conditions($query);
         $count = $this->pdo->prepare('SELECT COUNT(*) FROM celulares c' . $where);
-        $count->execute($parameters);
-        $total = (int) $count->fetchColumn();
+        try {
+            $count->execute($parameters);
+            $total = (int) $count->fetchColumn();
+        } finally {
+            $count->closeCursor();
+        }
         $lastPage = max(1, (int) ceil($total / $query->perPage()));
         $currentPage = min($query->page(), $lastPage);
 
@@ -96,21 +104,41 @@ final class CelularRepositoryMySQL implements CelularRepositoryPort
         }
         $statement->bindValue(':limit', $query->perPage(), PDO::PARAM_INT);
         $statement->bindValue(':offset', ($currentPage - 1) * $query->perPage(), PDO::PARAM_INT);
-        $statement->execute();
+        try {
+            $statement->execute();
+            $rows = $statement->fetchAll();
+        } finally {
+            $statement->closeCursor();
+        }
 
-        return array('items' => $this->hydrateRows($statement->fetchAll()), 'total' => $total, 'page' => $currentPage);
+        return array('items' => $this->hydrateRows($rows), 'total' => $total, 'page' => $currentPage);
     }
 
     public function dashboard(): array
     {
-        $total = (int) $this->pdo->query('SELECT COUNT(*) FROM celulares')->fetchColumn();
+        $totalStatement = $this->pdo->query('SELECT COUNT(*) FROM celulares');
+        try {
+            $total = (int) $totalStatement->fetchColumn();
+        } finally {
+            $totalStatement->closeCursor();
+        }
         $byBrand = $this->groupedCounts('marca');
         $byOs = $this->groupedCounts('sistema_operativo');
-        $features = $this->pdo->query(
+        $featuresStatement = $this->pdo->query(
             'SELECT COALESCE(SUM(wifi), 0) AS wifi, COALESCE(SUM(bluetooth), 0) AS bluetooth, ' .
             'COALESCE(SUM(nfc), 0) AS nfc, COALESCE(SUM(resiste_agua), 0) AS resiste_agua FROM celulares'
-        )->fetch();
-        $recentRows = $this->pdo->query('SELECT * FROM celulares ORDER BY created_at DESC LIMIT 5')->fetchAll();
+        );
+        try {
+            $features = $featuresStatement->fetch();
+        } finally {
+            $featuresStatement->closeCursor();
+        }
+        $recentStatement = $this->pdo->query('SELECT * FROM celulares ORDER BY created_at DESC LIMIT 5');
+        try {
+            $recentRows = $recentStatement->fetchAll();
+        } finally {
+            $recentStatement->closeCursor();
+        }
 
         return array(
             'total' => $total,
@@ -121,16 +149,16 @@ final class CelularRepositoryMySQL implements CelularRepositoryPort
         );
     }
 
-    /** @param array<string, mixed> $row
-     *  @return array<string, mixed>
-     */
-    private function parameters(array $row): array
+    /** @param array<string, mixed> $values */
+    private function bindAndExecute(PDOStatement $statement, array $values): void
     {
-        $parameters = array();
-        foreach ($row as $key => $value) {
-            $parameters[':' . $key] = $value;
+        foreach ($values as $name => $value) {
+            $type = is_bool($value)
+                ? PDO::PARAM_BOOL
+                : (is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+            $statement->bindValue(':' . $name, $value, $type);
         }
-        return $parameters;
+        $statement->execute();
     }
 
     private function writeImeis(Celular $celular): void
@@ -139,7 +167,11 @@ final class CelularRepositoryMySQL implements CelularRepositoryPort
             'INSERT INTO celular_imeis (imei, celular_id, sim_slot) VALUES (:imei, :id, :slot)'
         );
         foreach ($celular->imei() as $index => $imei) {
-            $statement->execute(array(':imei' => $imei, ':id' => $celular->id(), ':slot' => $index + 1));
+            $this->bindAndExecute($statement, array(
+                'imei' => $imei,
+                'id' => $celular->id(),
+                'slot' => $index + 1,
+            ));
         }
     }
 
@@ -162,9 +194,14 @@ final class CelularRepositoryMySQL implements CelularRepositoryPort
         $imeiQuery = $this->pdo->prepare(
             'SELECT celular_id, imei, sim_slot FROM celular_imeis WHERE celular_id IN (' . implode(', ', $placeholders) . ') ORDER BY sim_slot'
         );
-        $imeiQuery->execute($params);
+        try {
+            $imeiQuery->execute($params);
+            $imeiRows = $imeiQuery->fetchAll();
+        } finally {
+            $imeiQuery->closeCursor();
+        }
         $imeisById = array();
-        foreach ($imeiQuery->fetchAll() as $imeiRow) {
+        foreach ($imeiRows as $imeiRow) {
             $imeisById[$imeiRow['celular_id']][] = (string) $imeiRow['imei'];
         }
 
@@ -222,9 +259,14 @@ final class CelularRepositoryMySQL implements CelularRepositoryPort
         if (!in_array($column, $allowed, true)) {
             throw new InvalidArgumentException('Columna de agrupación no permitida.');
         }
-        $rows = $this->pdo->query(
+        $statement = $this->pdo->query(
             'SELECT ' . $column . ' AS label, COUNT(*) AS total FROM celulares GROUP BY ' . $column . ' ORDER BY total DESC, label ASC LIMIT 6'
-        )->fetchAll();
+        );
+        try {
+            $rows = $statement->fetchAll();
+        } finally {
+            $statement->closeCursor();
+        }
         return array_map(static fn (array $row): array => array(
             'label' => (string) $row['label'],
             'total' => (int) $row['total'],

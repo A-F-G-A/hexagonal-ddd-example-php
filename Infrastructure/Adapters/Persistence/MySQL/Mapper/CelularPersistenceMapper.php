@@ -60,6 +60,7 @@ final class CelularPersistenceMapper
             'tecnologiaBanda' => 'tecnologia_banda',
             'marcaCpu' => 'marca_cpu',
             'velocidadCpu' => 'velocidad_cpu',
+            'resisteAgua' => 'resiste_agua',
             'cantidadSim' => 'cantidad_sim',
         );
 

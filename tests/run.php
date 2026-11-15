@@ -27,6 +27,7 @@ require_once __DIR__ . '/../Application/Ports/Out/DeleteUserPort.php';
 require_once __DIR__ . '/../Application/Ports/Out/GetAllUsersPort.php';
 require_once __DIR__ . '/../Application/Ports/Out/EmailSenderPort.php';
 require_once __DIR__ . '/../Domain/Models/Celular.php';
+require_once __DIR__ . '/../Infrastructure/Adapters/Persistence/MySQL/Mapper/CelularPersistenceMapper.php';
 require_once __DIR__ . '/../Application/Services/CelularService.php';
 require_once __DIR__ . '/../Infrastructure/Entrypoints/Web/Controllers/Mapper/CelularWebMapper.php';
 require_once __DIR__ . '/../Common/ClassLoader.php';
@@ -308,6 +309,17 @@ $celular = new Celular(
 $businessAttributes = $celular->toArray();
 unset($businessAttributes['id']);
 $assert(count($businessAttributes) === 20, 'Celular exposes the exact 20 required business attributes');
+$persistenceMapper = new CelularPersistenceMapper();
+$celularRow = $persistenceMapper->toRow($celular);
+$expectedCelularColumns = array(
+    'id', 'marca', 'pulgadas', 'megapixeles', 'ram', 'almacenamiento_principal',
+    'almacenamiento_secundario', 'sistema_operativo', 'operador', 'tecnologia_banda',
+    'wifi', 'bluetooth', 'camaras', 'marca_cpu', 'velocidad_cpu', 'nfc', 'huella', 'ir',
+    'resiste_agua', 'cantidad_sim',
+);
+$assert(array_keys($celularRow) === $expectedCelularColumns, 'persistence mapper emits every SQL column for the 20 attributes and ID');
+$assert($celularRow['resiste_agua'] === true && !array_key_exists('resisteAgua', $celularRow), 'water resistance maps to the SQL snake_case column');
+$assert($persistenceMapper->fromRow($celularRow, $celular->imei())->toArray() === $celular->toArray(), 'persistence mapper round-trips all 20 attributes and types');
 $assert($celular->imei() === array('490154203237518'), 'single-SIM phone stores one IMEI as text');
 $dualSim = new Celular(
     'device-2', 'Acme', array('490154203237518', $validImei2), '6.70', '50', 8, 256, 0,
