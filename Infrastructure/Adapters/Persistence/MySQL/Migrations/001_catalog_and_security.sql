@@ -142,4 +142,3 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 -- Preserve existing accounts while aligning their authorization semantics.
 UPDATE users SET role = 'OPERADOR' WHERE role = 'MEMBER';
 UPDATE users SET role = 'CONSULTA' WHERE role = 'REVIEWER';
-
