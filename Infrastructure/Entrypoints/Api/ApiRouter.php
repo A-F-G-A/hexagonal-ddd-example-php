@@ -73,6 +73,9 @@ final class ApiRouter
                 $notFound = $exception instanceof UserNotFoundException || str_contains($exception->getMessage(), 'no encontrado');
                 self::respond($notFound ? 404 : 422, self::error($notFound ? 'not_found' : 'validation_error', $exception->getMessage()));
             }
+            if ($exception instanceof InvalidArgumentException) {
+                self::respond(422, self::error('validation_error', 'Los datos enviados no son válidos.'));
+            }
 
             error_log('API request failed: ' . get_class($exception));
             self::respond(500, self::error('internal_error', 'No se pudo completar la solicitud.'));

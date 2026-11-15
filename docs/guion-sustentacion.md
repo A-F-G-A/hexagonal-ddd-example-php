@@ -34,7 +34,7 @@ Presentar el objetivo: extender el CRUD PHP de usuarios existente para administr
 
 ## Verificación y límites
 
-Resultado local comprobado: `php tests/run.php` informó 78 aserciones correctas; el lint cubrió 128 archivos PHP sin errores. Dos escenarios HTTP se verificaron: la pantalla de login respondió 200 sin warnings y el API respondió JSON 503 genérico al faltar conexión MySQL. No se ejecutaron pruebas de integración ni concurrencia MySQL, Docker build/compose o despliegue. El servicio MYSQL267 no permitió autenticación sin credenciales; no se modificaron bases.
+Auditoría local actual: `php tests/run.php` informó 80 aserciones correctas y el lint cubrió 129 archivos PHP sin errores. La prueba unitaria incluye rechazo de contraseñas que superan los 72 bytes admitidos por bcrypt. Una auditoría anterior registró login HTTP 200 sin warnings y API JSON 503 genérico al faltar conexión MySQL; esos escenarios no se repitieron en esta ejecución. Docker y el cliente MySQL no están disponibles en el host actual, por lo que no se ejecutaron migraciones, integración/concurrencia MySQL, Docker build/compose ni despliegue. No se modificaron bases.
 
 Colección Postman: `docs/postman_collection.json`; importar el entorno de ejemplo y añadir un token real localmente, sin exportarlo. No afirmar que existe una URL pública ni presentar una captura que no se haya obtenido.
 

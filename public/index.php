@@ -503,6 +503,8 @@ try {
             $resetErrors = array();
             if (strlen($password) < 8) {
                 $resetErrors['password'] = 'La contraseña debe tener al menos 8 caracteres.';
+            } elseif (strlen($password) > 72) {
+                $resetErrors['password'] = 'La contraseña no puede superar 72 bytes.';
             }
             if (!hash_equals($password, $confirmation)) {
                 $resetErrors['password_confirmation'] = 'Las contraseñas no coinciden.';
@@ -818,6 +820,8 @@ function validateCreateUserForm(array $form): array
         $errors['password'] = 'La contraseña es obligatoria.';
     } elseif (strlen($form['password']) < 8) {
         $errors['password'] = 'La contraseña debe tener al menos 8 caracteres.';
+    } elseif (strlen($form['password']) > 72) {
+        $errors['password'] = 'La contraseña no puede superar 72 bytes.';
     }
 
     if ($form['role'] === '') {
@@ -848,6 +852,8 @@ function validateUpdateUserForm(array $form): array
     // Password is optional on update; validate only if provided.
     if ($form['password'] !== '' && strlen($form['password']) < 8) {
         $errors['password'] = 'La contraseña debe tener al menos 8 caracteres si deseas cambiarla.';
+    } elseif (strlen($form['password']) > 72) {
+        $errors['password'] = 'La contraseña no puede superar 72 bytes.';
     }
 
     if ($form['role'] === '') {

@@ -8,12 +8,12 @@
         <input type="hidden" name="token" value="<?= htmlspecialchars($token, ENT_QUOTES, 'UTF-8') ?>">
         <div class="form-group">
             <label for="password">Nueva contraseña</label>
-            <input id="password" name="password" type="password" minlength="8" autocomplete="new-password" required>
+            <input id="password" name="password" type="password" minlength="8" maxlength="72" autocomplete="new-password" required>
             <?php if (!empty($errors['password'])): ?><div class="field-error"><?= htmlspecialchars($errors['password'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
         </div>
         <div class="form-group">
             <label for="password_confirmation">Repite la contraseña</label>
-            <input id="password_confirmation" name="password_confirmation" type="password" minlength="8" autocomplete="new-password" required>
+            <input id="password_confirmation" name="password_confirmation" type="password" minlength="8" maxlength="72" autocomplete="new-password" required>
             <?php if (!empty($errors['password_confirmation'])): ?><div class="field-error"><?= htmlspecialchars($errors['password_confirmation'], ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
         </div>
         <button class="btn btn-primary" type="submit">Actualizar contraseña</button>

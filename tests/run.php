@@ -145,6 +145,14 @@ $assert(!RolePermissions::allows('CONSULTA', 'celulares.update'), 'read-only rol
 $assert(RolePermissions::allows('MEMBER', 'celulares.create'), 'legacy member maps to operator');
 $assert(!RolePermissions::allows('REVIEWER', 'celulares.update'), 'legacy reviewer maps to read-only');
 $assert(!RolePermissions::allows('UNKNOWN', 'users.write'), 'unknown role is denied');
+$assert(strlen(UserPassword::fromPlainText(str_repeat('a', 72))->value()) > 0, 'bcrypt accepts passwords through 72 bytes');
+$longPasswordRejected = false;
+try {
+    UserPassword::fromPlainText(str_repeat('a', 73));
+} catch (InvalidUserPasswordException) {
+    $longPasswordRejected = true;
+}
+$assert($longPasswordRejected, 'passwords over bcrypt 72-byte limit are rejected');
 
 session_save_path(sys_get_temp_dir());
 Security::startSession();

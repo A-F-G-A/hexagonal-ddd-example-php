@@ -7,9 +7,9 @@
 - Apache con `mod_rewrite` y `AllowOverride All`, o Docker Compose.
 - SMTP es opcional para iniciar la aplicación; sin configuración las notificaciones no se envían.
 
-Copia `.env.example` a `.env` fuera del control de versiones. Define `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`, `DB_CHARSET`, `APP_BASE_URL` y `APP_SECRET`. Genera el secreto con `php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"`; no uses un valor de plantilla. SMTP usa `SMTP_HOST`, `SMTP_PORT`, `SMTP_ENCRYPTION`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM_ADDRESS` y `SMTP_FROM_NAME`.
+Copia `.env.example` a `.env` fuera del control de versiones. Define `APP_ENV`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`, `DB_CHARSET`, `APP_BASE_URL` y `APP_SECRET`. Genera el secreto con `php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"`; no uses un valor de plantilla. SMTP usa `SMTP_HOST`, `SMTP_PORT`, `SMTP_ENCRYPTION`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM_ADDRESS` y `SMTP_FROM_NAME`.
 
-Usa una base previamente aprobada para el entorno. Antes de migrar, identifica su propietario, servidor, nombre y política de respaldo. Ejecuta `php bin/migrate.php` solo tras confirmar que el destino es el previsto. Las migraciones son explícitas y no se ejecutan desde una petición web.
+Usa una base previamente aprobada para el entorno. Antes de migrar, identifica su propietario, servidor, nombre y política de respaldo. Ejecuta `php bin/migrate.php` solo tras confirmar que el destino es el previsto. Con `APP_ENV=production`, el migrador exige `MIGRATIONS_ALLOW_PRODUCTION=1` como autorización explícita. Las migraciones son explícitas y no se ejecutan desde una petición web.
 
 ## Docker Compose
 

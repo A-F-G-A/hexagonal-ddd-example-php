@@ -9,7 +9,7 @@ Plataforma web para administrar usuarios y un catálogo técnico de celulares. E
 - Dashboard con métricas calculadas desde MySQL, distribución por marca y sistema operativo, equipos recientes y actividad visible para administración/supervisión.
 - API REST `/api/v1` con tokens Bearer hasheados, vigencia, permisos por rol y respuestas JSON uniformes.
 - Roles `ADMIN`, `SUPERVISOR`, `OPERADOR` y `CONSULTA`. Los roles legados `MEMBER` y `REVIEWER` se interpretan como `OPERADOR` y `CONSULTA`.
-- Protección CSRF en formularios, cookies HttpOnly/SameSite, sesiones estrictas con expiración y regeneración, versión monotónica para revocar sesiones tras cambios de seguridad, límites persistentes para autenticación/API, contraseñas bcrypt y restablecimiento por token temporal de un solo uso.
+- Protección CSRF en formularios, cookies HttpOnly/SameSite, sesiones estrictas con expiración y regeneración, versión monotónica para revocar sesiones tras cambios de seguridad, límites persistentes para autenticación/API, contraseñas bcrypt de máximo 72 bytes y restablecimiento por token temporal de un solo uso.
 - Diseño adaptable con HTML, CSS y JavaScript sin framework frontend.
 
 ## Arquitectura
@@ -32,10 +32,10 @@ Las lecturas usan Queries y las escrituras Commands; web y API llaman los mismos
 
 ## Configuración local (Laragon/Apache)
 
-1. Copia `.env.example` a `.env` y ajusta la conexión MySQL, `APP_BASE_URL`, `APP_SECRET` y SMTP. Genera un secreto propio de al menos 32 caracteres para `APP_SECRET`; no uses el valor de ejemplo.
+1. Copia `.env.example` a `.env` y ajusta `APP_ENV`, la conexión MySQL, `APP_BASE_URL`, `APP_SECRET` y SMTP. Genera un secreto propio de al menos 32 caracteres para `APP_SECRET`; no uses el valor de ejemplo.
 2. Crea/selecciona la base de datos indicada por `DB_DATABASE` y confirma que el usuario de MySQL puede crear tablas e índices.
 3. Revisa los datos existentes y respalda la base antes de migrar. La migración convierte roles legados, crea tablas y añade unicidad de email; fallará si ya hay emails duplicados.
-4. Desde la raíz, ejecuta `php bin/migrate.php`. No se ejecuta automáticamente al abrir la aplicación. Esto aplica también las migraciones `002_authorization_version.sql` y `003_celular_decimal_precision.sql`; revisa antes el respaldo y el entorno.
+4. Desde la raíz, ejecuta `php bin/migrate.php`. No se ejecuta automáticamente al abrir la aplicación. En `APP_ENV=production`, habilita explícitamente `MIGRATIONS_ALLOW_PRODUCTION=1` solo después de verificar destino y respaldo. Esto aplica también las migraciones `002_authorization_version.sql` y `003_celular_decimal_precision.sql`.
 5. Crea el primer administrador de forma interactiva por variables de entorno y CLI:
 
    ```powershell

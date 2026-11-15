@@ -86,7 +86,7 @@ paths:
               properties:
                 name: {type: string, maxLength: 120}
                 email: {type: string, format: email, maxLength: 254}
-                password: {type: string, minLength: 8, writeOnly: true}
+                password: {type: string, minLength: 8, writeOnly: true, description: Máximo de 72 bytes UTF-8 por el límite de bcrypt}
                 role: {type: string, enum: [ADMIN, SUPERVISOR, OPERADOR, CONSULTA]}
       responses:
         '201': {description: Usuario creado}
@@ -112,7 +112,7 @@ paths:
               properties:
                 name: {type: string}
                 email: {type: string, format: email}
-                password: {type: string, writeOnly: true, description: Cadena vacía conserva el hash actual}
+                password: {type: string, writeOnly: true, description: Cadena vacía conserva el hash actual; nueva contraseña de máximo 72 bytes UTF-8}
                 role: {type: string, enum: [ADMIN, SUPERVISOR, OPERADOR, CONSULTA]}
                 status: {type: string, enum: [ACTIVE, INACTIVE, PENDING, BLOCKED]}
       responses:

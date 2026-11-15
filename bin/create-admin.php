@@ -32,6 +32,11 @@ if (strlen($password) < 12) {
     exit(2);
 }
 
+if (strlen($password) > 72) {
+    fwrite(STDERR, "La contraseña inicial no puede superar 72 bytes.\n");
+    exit(2);
+}
+
 $repository = DependencyInjection::getUserRepository();
 if ($repository->getByEmail(new UserEmail($email)) !== null) {
     fwrite(STDERR, "Ya existe una cuenta con ese correo; no se hicieron cambios.\n");
