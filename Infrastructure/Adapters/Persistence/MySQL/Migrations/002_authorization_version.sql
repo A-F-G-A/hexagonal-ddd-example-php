@@ -6,7 +6,7 @@ SET @has_authorization_version = (
 SET @add_authorization_version = IF(
     @has_authorization_version = 0,
     'ALTER TABLE users ADD COLUMN authorization_version BIGINT UNSIGNED NOT NULL DEFAULT 1',
-    'SELECT 1'
+    'SET @migration_noop = 1'
 );
 PREPARE add_authorization_version FROM @add_authorization_version;
 EXECUTE add_authorization_version;

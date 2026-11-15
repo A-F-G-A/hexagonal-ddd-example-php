@@ -24,8 +24,13 @@ final class MigrationRunner
 
         foreach ($files as $file) {
             $version = basename($file, '.sql');
-            $hasVersion->execute(array(':version' => $version));
-            if ($hasVersion->fetchColumn() !== false) {
+            try {
+                $hasVersion->execute(array(':version' => $version));
+                $alreadyApplied = $hasVersion->fetchColumn() !== false;
+            } finally {
+                $hasVersion->closeCursor();
+            }
+            if ($alreadyApplied) {
                 continue;
             }
 
@@ -38,7 +43,11 @@ final class MigrationRunner
                 $this->pdo->exec($statement);
             }
 
-            $markVersion->execute(array(':version' => $version));
+            try {
+                $markVersion->execute(array(':version' => $version));
+            } finally {
+                $markVersion->closeCursor();
+            }
             $applied[] = $version;
         }
 

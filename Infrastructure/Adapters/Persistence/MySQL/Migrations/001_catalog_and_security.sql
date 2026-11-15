@@ -34,7 +34,7 @@ SET @has_unique_user_email = (
 SET @add_user_email_index = IF(
     @has_unique_user_email = 0,
     'CREATE UNIQUE INDEX uq_users_email ON users (email)',
-    'SELECT 1'
+    'SET @migration_noop = 1'
 );
 PREPARE add_user_email_index FROM @add_user_email_index;
 EXECUTE add_user_email_index;
