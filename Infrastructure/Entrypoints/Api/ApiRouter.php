@@ -17,10 +17,21 @@ final class ApiRouter
             self::respond(404, self::error('not_found', 'El recurso solicitado no existe.'));
         }
 
+        $remoteAddress = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+        $rateLimits = DependencyInjection::getRateLimitService();
+        if (!$rateLimits->allow('api:ip:' . $remoteAddress, 300, 60)) {
+            header('Retry-After: 60');
+            self::respond(429, self::error('rate_limited', 'Se excedió el límite de solicitudes. Inténtalo de nuevo en un minuto.'));
+        }
+
         $token = self::bearerToken();
         $identity = $token === null ? null : DependencyInjection::getApiTokenService()->authenticate($token);
         if ($identity === null) {
             self::respond(401, self::error('unauthorized', 'Se requiere un token Bearer válido y vigente.'));
+        }
+        if (!$rateLimits->allow('api:user:' . $identity['id'], 120, 60)) {
+            header('Retry-After: 60');
+            self::respond(429, self::error('rate_limited', 'Se excedió el límite de solicitudes. Inténtalo de nuevo en un minuto.'));
         }
 
         $resource = $segments[0];
@@ -42,6 +53,9 @@ final class ApiRouter
                 self::dispatchUsers($method, $id, $apiPrefix, $identity);
             }
         } catch (Throwable $exception) {
+            if ($exception instanceof DomainException && str_contains($exception->getMessage(), 'administrador activo')) {
+                self::respond(409, self::error('last_active_admin', $exception->getMessage()));
+            }
             if ($exception instanceof UserAlreadyExistsException || ($exception instanceof PDOException && (string) $exception->getCode() === '23000')) {
                 self::respond(409, self::error('conflict', 'El registro entra en conflicto con un dato existente.'));
             }

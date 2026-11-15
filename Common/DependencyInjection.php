@@ -7,6 +7,8 @@ require_once __DIR__ . '/EnvLoader.php';
 
 final class DependencyInjection
 {
+    private static ?PDO $pdo = null;
+
     public static function boot(): void
     {
         EnvLoader::load(dirname(__DIR__) . '/.env');
@@ -29,7 +31,10 @@ final class DependencyInjection
 
     public static function getPdo(): PDO
     {
-        return self::getConnection()->createPdo();
+        if (self::$pdo === null) {
+            self::$pdo = self::getConnection()->createPdo();
+        }
+        return self::$pdo;
     }
 
     public static function getUserPersistenceMapper(): UserPersistenceMapper

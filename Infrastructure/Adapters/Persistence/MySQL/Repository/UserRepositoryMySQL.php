@@ -14,6 +14,7 @@ require_once __DIR__ . '/../Mapper/UserPersistenceMapper.php';
 require_once __DIR__ . '/../../../../../Domain/Models/UserModel.php';
 require_once __DIR__ . '/../../../../../Domain/ValueObjects/UserId.php';
 require_once __DIR__ . '/../../../../../Domain/ValueObjects/UserEmail.php';
+require_once __DIR__ . '/../../../../../Application/Security/RolePermissions.php';
 
 final class UserRepositoryMySQL implements
     SaveUserPort,
@@ -80,36 +81,51 @@ final class UserRepositoryMySQL implements
 
     public function update(UserModel $user): UserModel
     {
-        $dto = $this->mapper->fromModelToDto($user);
+        $this->pdo->beginTransaction();
+        try {
+            $activeAdministratorIds = $this->lockActiveAdministratorIds();
+            $currentlyActiveAdministrator = in_array($user->id()->value(), $activeAdministratorIds, true);
+            $willRemainActiveAdministrator = $user->role() === 'ADMIN' && $user->status() === 'ACTIVE';
+            RolePermissions::assertActiveAdministratorInvariant(
+                $currentlyActiveAdministrator,
+                $willRemainActiveAdministrator,
+                count($activeAdministratorIds)
+            );
 
-        $sql = '
-            UPDATE users
-               SET name = :name,
-                   email = :email,
-                   password = :password,
-                   role = :role,
-                   status = :status,
-                   updated_at = NOW()
-             WHERE id = :id
-        ';
+            $dto = $this->mapper->fromModelToDto($user);
+            $sql = '
+                UPDATE users
+                   SET name = :name,
+                       email = :email,
+                       password = :password,
+                       role = :role,
+                       status = :status,
+                       updated_at = NOW()
+                 WHERE id = :id
+            ';
+            $statement = $this->pdo->prepare($sql);
+            $statement->execute(array(
+                ':id' => $dto->id(),
+                ':name' => $dto->name(),
+                ':email' => $dto->email(),
+                ':password' => $dto->password(),
+                ':role' => $dto->role(),
+                ':status' => $dto->status(),
+            ));
 
-        $statement = $this->pdo->prepare($sql);
-        $statement->execute(array(
-            ':id' => $dto->id(),
-            ':name' => $dto->name(),
-            ':email' => $dto->email(),
-            ':password' => $dto->password(),
-            ':role' => $dto->role(),
-            ':status' => $dto->status(),
-        ));
+            $updatedUser = $this->getById(new UserId($dto->id()));
+            if ($updatedUser === null) {
+                throw new RuntimeException('The user could not be recovered after update.');
+            }
 
-        $updatedUser = $this->getById(new UserId($dto->id()));
-
-        if ($updatedUser === null) {
-            throw new RuntimeException('The user could not be recovered after update.');
+            $this->pdo->commit();
+            return $updatedUser;
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $exception;
         }
-
-        return $updatedUser;
     }
 
     public function getById(UserId $userId): ?UserModel
@@ -210,16 +226,38 @@ final class UserRepositoryMySQL implements
 
     public function delete(UserId $userId): void
     {
-        $sql = 'DELETE FROM users WHERE id = :id';
+        $this->pdo->beginTransaction();
+        try {
+            $activeAdministratorIds = $this->lockActiveAdministratorIds();
+            $currentlyActiveAdministrator = in_array($userId->value(), $activeAdministratorIds, true);
+            RolePermissions::assertActiveAdministratorInvariant(
+                $currentlyActiveAdministrator,
+                false,
+                count($activeAdministratorIds)
+            );
 
-        $statement = $this->pdo->prepare($sql);
-        $statement->execute(array(
-            ':id' => $userId->value(),
-        ));
+            $statement = $this->pdo->prepare('DELETE FROM users WHERE id = :id');
+            $statement->execute(array(':id' => $userId->value()));
+            $this->pdo->commit();
+        } catch (Throwable $exception) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $exception;
+        }
     }
 
     public function countActive(): int
     {
         return (int) $this->pdo->query("SELECT COUNT(*) FROM users WHERE status = 'ACTIVE'")->fetchColumn();
+    }
+
+    /** @return string[] Locks active administrator rows in a consistent order. */
+    private function lockActiveAdministratorIds(): array
+    {
+        $statement = $this->pdo->query(
+            "SELECT id FROM users WHERE role = 'ADMIN' AND status = 'ACTIVE' ORDER BY id FOR UPDATE"
+        );
+        return array_map('strval', $statement->fetchAll(PDO::FETCH_COLUMN));
     }
 }

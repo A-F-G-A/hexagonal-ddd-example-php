@@ -58,6 +58,28 @@ try {
     );
     $users->save($user);
     $userSaved = true;
+    $activeAdminCount = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'ADMIN' AND status = 'ACTIVE'")->fetchColumn();
+    if ($activeAdminCount === 1) {
+        $adminUpdateRejected = static function (string $role, string $status) use ($users, $userId, $user): bool {
+            try {
+                $users->update(new UserModel(
+                    new UserId($userId), $user->name(), $user->email(), $user->password(), $role, $status
+                ));
+                return false;
+            } catch (DomainException) {
+                return true;
+            }
+        };
+        $assert($adminUpdateRejected('ADMIN', UserStatusEnum::INACTIVE), 'last active administrator cannot be deactivated transactionally');
+        $assert($adminUpdateRejected('CONSULTA', UserStatusEnum::ACTIVE), 'last active administrator cannot be demoted transactionally');
+        $lastAdminDeleteRejected = false;
+        try {
+            $users->delete(new UserId($userId));
+        } catch (DomainException) {
+            $lastAdminDeleteRejected = true;
+        }
+        $assert($lastAdminDeleteRejected, 'last active administrator cannot be deleted transactionally');
+    }
     $assert($users->getByEmail(new UserEmail($email)) !== null, 'user insert and lookup');
     $assert($users->countActive() > 0, 'active user count');
     $assert(count($users->getAll(1, 0)) <= 1 && $users->countAll() > 0, 'bounded user pagination');
@@ -130,7 +152,12 @@ try {
         $celulares->delete($celularId);
     }
     if ($userSaved) {
-        $users->delete(new UserId($userId));
+        $remainingAdmins = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'ADMIN' AND status = 'ACTIVE'")->fetchColumn();
+        if ($remainingAdmins > 1) {
+            $users->delete(new UserId($userId));
+        } else {
+            fwrite(STDOUT, "Preserving the sole active administrator fixture in the disposable database.\n");
+        }
     }
     $limits->clear($limitKey);
 }

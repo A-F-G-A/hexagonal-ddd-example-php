@@ -67,6 +67,44 @@ function getLoggedUser(): array
     return is_array($_SESSION['auth'] ?? null) ? $_SESSION['auth'] : array();
 }
 
+function revalidateAuthenticatedSession(): void
+{
+    if (!isLoggedIn()) {
+        return;
+    }
+
+    try {
+        $session = getLoggedUser();
+        $userId = $session['id'] ?? null;
+        $currentUser = is_string($userId) && trim($userId) !== ''
+            ? DependencyInjection::getUserRepository()->getById(new UserId($userId))
+            : null;
+    } catch (Throwable $exception) {
+        error_log('Session revalidation failed: ' . get_class($exception));
+        http_response_code(503);
+        echo 'No se pudo validar la sesión en este momento.';
+        exit;
+    }
+
+    $storedFingerprint = (string) ($session['authorization_fingerprint'] ?? '');
+    if (!RolePermissions::sessionIsCurrent($currentUser, $storedFingerprint)) {
+        $_SESSION = array();
+        session_regenerate_id(true);
+        Flash::setMessage('La cuenta o sus permisos cambiaron. Inicia sesión nuevamente.');
+        View::redirect('auth.login');
+    }
+
+    $_SESSION['auth'] = array(
+        'id' => $currentUser->id()->value(),
+        'name' => $currentUser->name()->value(),
+        'email' => $currentUser->email()->value(),
+        'role' => $currentUser->role(),
+        'authorization_fingerprint' => RolePermissions::sessionFingerprint($currentUser),
+    );
+}
+
+revalidateAuthenticatedSession();
+
 // ──────────────────────────────────────────────────────────────
 // Routing
 // ──────────────────────────────────────────────────────────────
@@ -362,6 +400,7 @@ try {
                 'name' => $user->name()->value(),
                 'email' => $user->email()->value(),
                 'role' => $user->role(),
+                'authorization_fingerprint' => RolePermissions::sessionFingerprint($user),
             );
             recordActivity('auth.login', 'user', $user->id()->value());
             session_regenerate_id(true);

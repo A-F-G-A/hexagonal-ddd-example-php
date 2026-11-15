@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../../Domain/Models/UserModel.php';
+
 /** Server-side authorization policy for web and API use cases. */
 final class RolePermissions
 {
@@ -35,6 +37,34 @@ final class RolePermissions
         $permissions = self::PERMISSIONS[self::normalizeRole($role)] ?? array();
 
         return in_array('*', $permissions, true) || in_array($permission, $permissions, true);
+    }
+
+    public static function sessionFingerprint(UserModel $user): string
+    {
+        return hash('sha256', implode("\0", array(
+            $user->id()->value(),
+            $user->role(),
+            $user->status(),
+            $user->password()->value(),
+        )));
+    }
+
+    public static function sessionIsCurrent(?UserModel $user, string $fingerprint): bool
+    {
+        return $user !== null
+            && $user->status() === UserStatusEnum::ACTIVE
+            && $fingerprint !== ''
+            && hash_equals($fingerprint, self::sessionFingerprint($user));
+    }
+
+    public static function assertActiveAdministratorInvariant(
+        bool $currentlyActiveAdministrator,
+        bool $willRemainActiveAdministrator,
+        int $activeAdministratorCount
+    ): void {
+        if ($currentlyActiveAdministrator && !$willRemainActiveAdministrator && $activeAdministratorCount <= 1) {
+            throw new DomainException('Debe permanecer al menos un administrador activo.');
+        }
     }
 
     /** @return string[] */

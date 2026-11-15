@@ -73,12 +73,13 @@ final class InMemoryApiTokenPort implements ApiTokenPort
 {
     public ?string $storedHash = null;
     public int $authenticateCalls = 0;
-    public function issue(string $id, string $userId, string $name, string $tokenHash, string $expiresAt): void { $this->storedHash = $tokenHash; }
-    public function revoke(string $id): bool { return $id === 'token-id'; }
+    private bool $revoked = false;
+    public function issue(string $id, string $userId, string $name, string $tokenHash, string $expiresAt): void { $this->storedHash = $tokenHash; $this->revoked = false; }
+    public function revoke(string $id): bool { if ($id !== 'token-id') return false; $this->revoked = true; return true; }
     public function authenticate(string $tokenHash): ?array
     {
         $this->authenticateCalls++;
-        return $tokenHash === $this->storedHash ? array('id' => 'u1', 'name' => 'Admin', 'role' => 'ADMIN') : null;
+        return !$this->revoked && $tokenHash === $this->storedHash ? array('id' => 'u1', 'name' => 'Admin', 'role' => 'ADMIN') : null;
     }
 }
 
@@ -92,9 +93,30 @@ final class InMemoryUserRepository implements SaveUserPort, GetUserByEmailPort, 
         foreach ($this->records as $user) if ($user->email()->equals($email)) return $user;
         return null;
     }
-    public function update(UserModel $user): UserModel { $this->records[$user->id()->value()] = $user; return $user; }
+    public function update(UserModel $user): UserModel
+    {
+        $current = $this->records[$user->id()->value()] ?? null;
+        $admins = array_filter($this->records, static fn (UserModel $record): bool => $record->role() === 'ADMIN' && $record->status() === UserStatusEnum::ACTIVE);
+        RolePermissions::assertActiveAdministratorInvariant(
+            $current !== null && $current->role() === 'ADMIN' && $current->status() === UserStatusEnum::ACTIVE,
+            $user->role() === 'ADMIN' && $user->status() === UserStatusEnum::ACTIVE,
+            count($admins)
+        );
+        $this->records[$user->id()->value()] = $user;
+        return $user;
+    }
     public function getById(UserId $userId): ?UserModel { return $this->records[$userId->value()] ?? null; }
-    public function delete(UserId $userId): void { unset($this->records[$userId->value()]); }
+    public function delete(UserId $userId): void
+    {
+        $current = $this->records[$userId->value()] ?? null;
+        $admins = array_filter($this->records, static fn (UserModel $record): bool => $record->role() === 'ADMIN' && $record->status() === UserStatusEnum::ACTIVE);
+        RolePermissions::assertActiveAdministratorInvariant(
+            $current !== null && $current->role() === 'ADMIN' && $current->status() === UserStatusEnum::ACTIVE,
+            false,
+            count($admins)
+        );
+        unset($this->records[$userId->value()]);
+    }
     public function getAll(int $limit, int $offset): array { return array_slice(array_values($this->records), $offset, $limit); }
     public function countAll(): int { return count($this->records); }
 }
@@ -139,6 +161,8 @@ for ($attempt = 1; $attempt <= 5; $attempt++) {
 }
 $assert(!$limiter->allow('login:account:test@example.com'), 'rate limiter rejects attempt above limit');
 $assert($limiter->allow('login:account:other@example.com'), 'rate limiter scopes separate accounts');
+$assert($limiter->allow('api:test', 2, 60) && $limiter->allow('api:test', 2, 60), 'API rate policy permits requests within its configured quota');
+$assert(!$limiter->allow('api:test', 2, 60), 'API rate policy rejects requests above its configured quota');
 $limiter->clear('login:account:test@example.com');
 $assert($limiter->allow('login:account:test@example.com'), 'successful authentication can reset its rate bucket');
 
@@ -150,6 +174,64 @@ $assert($apiTokenPort->storedHash === hash('sha256', $apiToken), 'only a token h
 $assert($apiTokenService->authenticate('invalid') === null && $apiTokenPort->authenticateCalls === 0, 'malformed API token is rejected before storage lookup');
 $assert(($apiTokenService->authenticate($apiToken)['id'] ?? null) === 'u1', 'valid API token resolves an active identity');
 $assert($apiTokenService->revoke('token-id'), 'API token can be revoked');
+$assert($apiTokenService->authenticate($apiToken) === null, 'revoked API token can no longer authenticate');
+
+$sessionUser = new UserModel(
+    new UserId('session-user'), new UserName('Session User'), new UserEmail('session@example.test'),
+    UserPassword::fromPlainText('session-password-123'), 'OPERADOR', UserStatusEnum::ACTIVE
+);
+$sessionFingerprint = RolePermissions::sessionFingerprint($sessionUser);
+$assert(RolePermissions::sessionIsCurrent($sessionUser, $sessionFingerprint), 'active unchanged account keeps its session');
+$changedRoleUser = new UserModel(
+    $sessionUser->id(), $sessionUser->name(), $sessionUser->email(), $sessionUser->password(), 'CONSULTA', UserStatusEnum::ACTIVE
+);
+$assert(!RolePermissions::sessionIsCurrent($changedRoleUser, $sessionFingerprint), 'role change invalidates an existing session');
+$disabledSessionUser = new UserModel(
+    $sessionUser->id(), $sessionUser->name(), $sessionUser->email(), $sessionUser->password(), 'OPERADOR', UserStatusEnum::INACTIVE
+);
+$assert(!RolePermissions::sessionIsCurrent($disabledSessionUser, $sessionFingerprint), 'deactivated account invalidates an existing session');
+$assert(!RolePermissions::sessionIsCurrent($sessionUser, ''), 'missing session fingerprint is revoked');
+$assert(!RolePermissions::sessionIsCurrent(null, $sessionFingerprint), 'deleted account revokes its existing session');
+$changedPasswordUser = new UserModel(
+    $sessionUser->id(), $sessionUser->name(), $sessionUser->email(), UserPassword::fromPlainText('new-session-password-123'), 'OPERADOR', UserStatusEnum::ACTIVE
+);
+$assert(!RolePermissions::sessionIsCurrent($changedPasswordUser, $sessionFingerprint), 'password reset revokes existing sessions');
+
+$adminRepository = new InMemoryUserRepository();
+$admin = new UserModel(
+    new UserId('only-admin'), new UserName('Only Admin'), new UserEmail('admin@example.test'),
+    UserPassword::fromPlainText('admin-password-123'), 'ADMIN', UserStatusEnum::ACTIVE
+);
+$adminRepository->save($admin);
+$adminNotification = new EmailNotificationService(new InMemoryEmailSender());
+$lastAdminDeleteRejected = false;
+try {
+    (new DeleteUserService($adminRepository, $adminRepository))->execute(new DeleteUserCommand('only-admin'));
+} catch (DomainException) {
+    $lastAdminDeleteRejected = true;
+}
+$assert($lastAdminDeleteRejected && $adminRepository->getById($admin->id()) !== null, 'last active administrator cannot be deleted');
+$adminUpdater = new UpdateUserService($adminRepository, $adminRepository, $adminRepository, $adminNotification);
+$lastAdminDeactivationRejected = false;
+try {
+    $adminUpdater->execute(new UpdateUserCommand('only-admin', 'Only Admin', 'admin@example.test', '', 'ADMIN', UserStatusEnum::INACTIVE));
+} catch (DomainException) {
+    $lastAdminDeactivationRejected = true;
+}
+$assert($lastAdminDeactivationRejected, 'last active administrator cannot be deactivated');
+$lastAdminDemotionRejected = false;
+try {
+    $adminUpdater->execute(new UpdateUserCommand('only-admin', 'Only Admin', 'admin@example.test', '', 'CONSULTA', UserStatusEnum::ACTIVE));
+} catch (DomainException) {
+    $lastAdminDemotionRejected = true;
+}
+$assert($lastAdminDemotionRejected, 'last active administrator cannot be demoted');
+$adminRepository->save(new UserModel(
+    new UserId('second-admin'), new UserName('Second Admin'), new UserEmail('admin2@example.test'),
+    UserPassword::fromPlainText('admin-password-456'), 'ADMIN', UserStatusEnum::ACTIVE
+));
+$adminUpdater->execute(new UpdateUserCommand('only-admin', 'Only Admin', 'admin@example.test', '', 'CONSULTA', UserStatusEnum::ACTIVE));
+$assert($adminRepository->getById($admin->id())->role() === 'CONSULTA', 'administrator can be demoted when another active administrator remains');
 
 $userRepository = new InMemoryUserRepository();
 $emailSender = new InMemoryEmailSender();
