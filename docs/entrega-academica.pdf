@@ -4,266 +4,655 @@
 << /Type /Catalog /Pages 2 0 R >>
 endobj
 2 0 obj
-<< /Type /Pages /Kids [4 0 R 6 0 R 8 0 R] /Count 3 >>
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R] /Count 4 >>
 endobj
 3 0 obj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
 endobj
 4 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
 endobj
 5 0 obj
-<< /Length 1762>>
-stream
-BT
-/F1 10 Tf
-50 750 Td
-14 TL
-(PORTADA) Tj
-T*
-() Tj
-T*
-(Universidad de Cartagena) Tj
-T*
-() Tj
-T*
-(Programa: Ingenieria de Software) Tj
-T*
-() Tj
-T*
-(Asignatura: Desarrollo Web) Tj
-T*
-() Tj
-T*
-(Unidad 2) Tj
-T*
-() Tj
-T*
-(Actividad: Ejercicio 11 - Celular) Tj
-T*
-() Tj
-T*
-(Estudiante: Andres Felipe Guzman Arrieta) Tj
-T*
-() Tj
-T*
-() Tj
-T*
-() Tj
-T*
-(DESCRIPCION) Tj
-T*
-() Tj
-T*
-(Plataforma web para gestionar usuarios y un catalogo tecnico de celulares. El trabajo) Tj
-T*
-(evoluciona el CRUD PHP del repositorio docente y conserva la arquitectura hexagonal y) Tj
-T*
-(sus capas originales.) Tj
-T*
-() Tj
-T*
-() Tj
-T*
-() Tj
-T*
-(ARQUITECTURA) Tj
-T*
-() Tj
-T*
-(Domain contiene entidades, value objects y reglas. Application contiene servicios,) Tj
-T*
-(Commands, Queries y puertos. Infrastructure adapta HTTP, MySQL y correo. Common conserva) Tj
-T*
-(la carga de clases y composicion manual. El mismo caso de uso se utiliza desde la web y) Tj
-T*
-(la API.) Tj
-T*
-() Tj
-T*
-() Tj
-T*
-() Tj
-T*
-(MODELO DE DATOS) Tj
-T*
-() Tj
-T*
-(La tabla users conserva las cuentas del CRUD previo. celulares almacena los atributos) Tj
-T*
-(escalares y celular_imeis representa uno o dos IMEI por equipo. La clave primaria IMEI) Tj
-T*
-(evita duplicados globales; la relacion en cascada elimina sus filas al borrar un) Tj
-T*
-(celular. Tokens API, restablecimientos de clave, rate limits y actividad tienen tablas) Tj
-T*
-(separadas.) Tj
-T*
-() Tj
-T*
-() Tj
-T*
-() Tj
-T*
-(FUNCIONALIDADES) Tj
-T*
-() Tj
-T*
-(CRUD de usuarios con paginacion y administracion restringida. CRUD de celulares con) Tj
-T*
-(veinte atributos, validacion Luhn, compatibilidad con una o dos SIM, filtros, busqueda,) Tj
-T*
-(orden y paginacion. Dashboard, roles, API REST Bearer, historial de actividad, Docker) Tj
-T*
-(Pagina 1 de 3) Tj
-ET
-endstream
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 6 0 R >>
 endobj
 6 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
-endobj
-7 0 obj
-<< /Length 1918>>
+<< /Length 2292>>
 stream
 BT
-/F1 10 Tf
 50 750 Td
 14 TL
-(Compose y pipeline CI.) Tj
+/F2 11 Tf
+(ENTREGA ACADEMICA - DESARROLLO WEB) Tj
 T*
+/F1 10 Tf
 () Tj
 T*
+/F1 10 Tf
+(Universidad de Cartagena) Tj
+T*
+/F1 10 Tf
 () Tj
 T*
+/F1 10 Tf
+(Programa: Ingeniería de Software) Tj
+T*
+/F1 10 Tf
 () Tj
 T*
-(SEGURIDAD) Tj
+/F1 10 Tf
+(Asignatura: Desarrollo Web) Tj
 T*
+/F1 10 Tf
 () Tj
 T*
-(Permisos comprobados en servidor. Formularios protegidos con CSRF; cookies de sesion) Tj
+/F1 10 Tf
+(Semestre: no confirmado) Tj
 T*
-(HttpOnly y SameSite; regeneracion y expiracion de sesion; rate limiting de) Tj
-T*
-(autenticacion; tokens temporales de recuperacion de un solo uso; contrasenas con bcrypt.) Tj
-T*
-(Los tokens API se guardan como hashes.) Tj
-T*
+/F1 10 Tf
 () Tj
 T*
+/F1 10 Tf
+(Unidad 2 | Actividad: Ejercicio 11 - Celular) Tj
+T*
+/F1 10 Tf
 () Tj
 T*
+/F1 10 Tf
+(Estudiante: Andrés Felipe Guzmán Arrieta) Tj
+T*
+/F1 10 Tf
 () Tj
 T*
-(PRUEBAS Y EVIDENCIAS) Tj
+/F1 10 Tf
+(Repositorio: github.com/A-F-G-A/hexagonal-ddd-example-php) Tj
 T*
+/F1 10 Tf
 () Tj
 T*
-(La suite php tests/run.php usa doubles para reglas de dominio, permisos, servicios y) Tj
+/F1 10 Tf
+(Pull Request: github.com/A-F-G-A/hexagonal-ddd-example-php/pull/5) Tj
 T*
-(mapeo. La verificacion final local registra 61 aserciones correctas y lint sin errores) Tj
-T*
-(en 123 archivos PHP de la aplicacion y herramientas. Una solicitud HTTP local a la vista) Tj
-T*
-(de inicio de sesion respondio 200 e incluyo el token CSRF y cabeceras de seguridad.) Tj
-T*
-(GitHub Actions incluye lint, pruebas unitarias, migracion en MySQL efimero, pruebas de) Tj
-T*
-(integracion y construccion Docker.) Tj
-T*
+/F1 10 Tf
 () Tj
 T*
-(En este entorno no hay servidor MySQL ni Docker disponibles. Por ello, las pruebas de) Tj
+/F1 10 Tf
+(Video individual: [PENDIENTE - agregar enlace despues de grabar]) Tj
 T*
-(integracion, la migracion real y la construccion de imagen quedan pendientes de) Tj
-T*
-(ejecucion en CI o en un host con dichos servicios.) Tj
-T*
+/F1 10 Tf
 () Tj
 T*
+/F1 10 Tf
 () Tj
 T*
+/F1 10 Tf
 () Tj
 T*
-(REPOSITORIO Y DESPLIEGUE) Tj
+/F2 11 Tf
+(DESCRIPCION DEL SISTEMA) Tj
 T*
+/F1 10 Tf
 () Tj
 T*
-(Repositorio publico esperado: https://github.com/AFGA/hexagonal-ddd-example-php) Tj
+/F1 10 Tf
+(Plataforma web para conservar el CRUD de usuarios y administrar un catalogo tecnico de) Tj
 T*
+/F1 10 Tf
+(celulares. Extiende el proyecto docente original sin cambiar el front controller, el) Tj
+T*
+/F1 10 Tf
+(cargador propio ni las capas existentes.) Tj
+T*
+/F1 10 Tf
 () Tj
 T*
-(URL de despliegue: no configurada.) Tj
-T*
+/F1 10 Tf
 () Tj
 T*
-(Enlaces de sustentacion: no disponibles.) Tj
-T*
+/F1 10 Tf
 () Tj
 T*
+/F2 11 Tf
+(ARQUITECTURA IMPLEMENTADA) Tj
+T*
+/F1 10 Tf
 () Tj
 T*
+/F1 10 Tf
+(Domain: UserModel, Celular, Value Objects y reglas de validacion. Application:) Tj
+T*
+/F1 10 Tf
+(servicios, Commands, Queries y puertos de entrada/salida. Infrastructure: controladores) Tj
+T*
+/F1 10 Tf
+(web/API y adaptadores PDO MySQL/correo. Common: configuracion y composicion manual.) Tj
+T*
+/F1 10 Tf
 () Tj
 T*
-(DATOS ACADEMICOS NO CONFIRMADOS) Tj
+/F1 10 Tf
+(Web y API comparten casos de uso. CQRS se limita a separar comandos de escritura y) Tj
 T*
+/F1 10 Tf
+(consultas; no hay buses ni infraestructura CQRS avanzada.) Tj
+T*
+/F1 10 Tf
 () Tj
 T*
-(No se incluye semestre porque no fue confirmado. No se agregan tutor, correo) Tj
+/F1 10 Tf
+(Navegador / API -> controladores -> servicios Application -> puertos -> adaptadores) Tj
 T*
-(institucional, fecha ni enlaces no proporcionados.) Tj
+/F1 10 Tf
+(MySQL) Tj
 T*
+/F1 10 Tf
 () Tj
 T*
+/F1 10 Tf
 () Tj
 T*
+/F1 10 Tf
 () Tj
 T*
-(DOCUMENTACION) Tj
+/F2 11 Tf
+(EJERCICIO 11 - CELULAR: 20 ATRIBUTOS) Tj
 T*
+/F1 10 Tf
 () Tj
 T*
-(README.md describe configuracion y ejecucion. docs/architecture.md registra las) Tj
+/F1 10 Tf
+(marca | imei | pulgadas | megapixeles | ram | almacenamientoPrincipal |) Tj
 T*
-(Pagina 2 de 3) Tj
+/F1 10 Tf
+(almacenamientoSecundario | sistemaOperativo | operador | tecnologiaBanda) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+(Pagina 1 de 4) Tj
 ET
 endstream
 endobj
-8 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 9 0 R >>
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 8 0 R >>
 endobj
-9 0 obj
-<< /Length 274>>
+8 0 obj
+<< /Length 2292>>
 stream
 BT
-/F1 10 Tf
 50 750 Td
 14 TL
-(decisiones, docs/data-model.md el esquema, docs/security.md los controles y) Tj
+/F1 10 Tf
+(wifi | bluetooth | camaras | marcaCpu | velocidadCpu | nfc | huella | ir | resisteAgua |) Tj
 T*
-(limitaciones, docs/openapi.yaml el contrato API y docs/guion-sustentacion.md propone el) Tj
+/F1 10 Tf
+(cantidadSim) Tj
 T*
-(recorrido de demostracion.) Tj
-T*
+/F1 10 Tf
 () Tj
 T*
-(Pagina 3 de 3) Tj
+/F2 11 Tf
+(ATRIBUTO | REPRESENTACION | TIPO / REGLA) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(marca | celulares.marca | VARCHAR\(80\)) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(imei | celular_imeis.imei | VARCHAR\(15\), uno o dos; digito Luhn) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(pulgadas | celulares.pulgadas | DECIMAL\(5,2\), maximo 100.00) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(megapixeles | celulares.megapixeles | DECIMAL\(8,2\), maximo 100000.00) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(ram | celulares.ram | SMALLINT UNSIGNED, GB, 1..65535) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(almacenamientoPrincipal | almacenamiento_principal | SMALLINT UNSIGNED, GB) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(almacenamientoSecundario | almacenamiento_secundario | SMALLINT UNSIGNED, GB; puede ser) Tj
+T*
+/F1 10 Tf
+(cero) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(sistemaOperativo | sistema_operativo | VARCHAR\(80\)) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(operador | celulares.operador | VARCHAR\(80\)) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(tecnologiaBanda | tecnologia_banda | VARCHAR\(80\)) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(wifi | celulares.wifi | BOOLEAN) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(bluetooth | celulares.bluetooth | BOOLEAN) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(camaras | celulares.camaras | TINYINT UNSIGNED, 1..255) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(marcaCpu | marca_cpu | VARCHAR\(80\)) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(velocidadCpu | velocidad_cpu | DECIMAL\(6,2\), GHz, maximo 1000.00) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(nfc | celulares.nfc | BOOLEAN) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(huella | celulares.huella | BOOLEAN) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(ir | celulares.ir | BOOLEAN) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(resisteAgua | resiste_agua | BOOLEAN) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(cantidadSim | cantidad_sim | TINYINT UNSIGNED, 1 o 2; coincide con IMEI) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(El ID es tecnico y adicional. IMEI se conserva como texto de 15 digitos, valida Luhn, es) Tj
+T*
+/F1 10 Tf
+(unico y se guarda en celular_imeis: uno o dos valores relacionados con un celular segun) Tj
+T*
+(Pagina 2 de 4) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 10 0 R >>
+endobj
+10 0 obj
+<< /Length 2524>>
+stream
+BT
+50 750 Td
+14 TL
+/F1 10 Tf
+(cantidadSim. No se inventa relacion celular-usuario.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(Pulgadas, megapixeles y velocidad CPU son decimales. RAM y almacenamientos son SMALLINT) Tj
+T*
+/F1 10 Tf
+(UNSIGNED; capacidades en GB. Los booleanos son BOOLEAN; camaras y SIM son enteros) Tj
+T*
+/F1 10 Tf
+(pequenos. Maximos: megapixeles 100000.00 y velocidad CPU 1000.00; migracion 003 amplia) Tj
+T*
+/F1 10 Tf
+(las columnas a DECIMAL\(8,2\) y DECIMAL\(6,2\).) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F2 11 Tf
+(MODELO RELACIONAL) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(USERS 1 --- N API_TOKENS | USERS 1 --- N PASSWORD_RESET_TOKENS | USERS 1 --- N) Tj
+T*
+/F2 11 Tf
+(ACTIVITY_LOGS) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(CELULARES 1 --- N CELULAR_IMEIS \(uno o dos IMEI por equipo; FK ON DELETE CASCADE\). No) Tj
+T*
+/F1 10 Tf
+(hay FK celular-usuario.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F2 11 Tf
+(FUNCIONALIDADES CRUDL) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(Usuarios: crear, consultar, actualizar, eliminar y listar con paginacion; roles y estado) Tj
+T*
+/F1 10 Tf
+(restringidos en servidor.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(Celulares: crear, consultar individual, actualizar, eliminar, listar, buscar, filtrar,) Tj
+T*
+/F1 10 Tf
+(ordenar y paginar desde web y API.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F2 11 Tf
+(SEGURIDAD) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(Sesiones web consultan cuenta, rol y estado; authorization_version monotona incrementa) Tj
+T*
+/F1 10 Tf
+(ante cambios de email, rol, estado o contrasena, incluso si los valores luego se) Tj
+T*
+/F1 10 Tf
+(restauran. El reset tambien incrementa la version.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(CSRF en POST web; cookies HttpOnly, SameSite y Secure bajo HTTPS. Contrasenas bcrypt.) Tj
+T*
+/F1 10 Tf
+(Bearer token almacenado como SHA-256, revocable y validado contra cuenta activa. API:) Tj
+T*
+/F1 10 Tf
+(300/minuto por IP y 120/minuto por identidad.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(La persistencia protege transaccionalmente contra eliminar, degradar o desactivar al) Tj
+T*
+/F1 10 Tf
+(ultimo administrador. Se preparo una prueba concurrente con procesos y conexiones) Tj
+T*
+/F1 10 Tf
+(separados; no se ejecuto localmente.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F2 11 Tf
+(PRUEBAS Y EVIDENCIAS) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(Suite unitaria php tests/run.php: 78 aserciones aprobadas. No equivalen a cobertura de) Tj
+T*
+(Pagina 3 de 4) Tj
+ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 12 0 R >>
+endobj
+12 0 obj
+<< /Length 2615>>
+stream
+BT
+50 750 Td
+14 TL
+/F1 10 Tf
+(codigo; repositorios y rate limits usan doubles en memoria.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(PHP lint: 128 archivos PHP del proyecto, cero errores. HTTP local: login 200 sin) Tj
+T*
+/F1 10 Tf
+(warnings, cookie de sesion y nosniff; API respondio JSON 503 generico al no poder) Tj
+T*
+/F1 10 Tf
+(conectar MySQL. Se uso session.save_path temporal por permisos locales.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(MySQL: servicio local 26.7.0 y puerto 3306, sin acceso autenticado para listar bases; no) Tj
+T*
+/F1 10 Tf
+(se modifico ninguna base. Integracion/concurrencia MySQL: no ejecutada. Docker: no) Tj
+T*
+/F1 10 Tf
+(ejecutado; no disponible en PATH.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(GitHub Actions declara PHP 8.3, MySQL 8.4, lint, pruebas, migraciones, integracion,) Tj
+T*
+/F1 10 Tf
+(build Docker y auditoria OSV. La existencia del YAML no prueba un resultado remoto) Tj
+T*
+/F1 10 Tf
+(aprobado.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(Evidencia: salidas locales de tests/lint y archivos de codigo/documentacion. No se) Tj
+T*
+/F1 10 Tf
+(adjuntan capturas de despliegue ni evidencia visual no producida.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F2 11 Tf
+(DOCKER, POSTMAN Y DESPLIEGUE) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(Dockerfile usa PHP 8.3/Apache, rewrite y AllowOverride. Compose define web, MySQL 8.4,) Tj
+T*
+/F1 10 Tf
+(secretos obligatorios y volumen mysql_data. Revisado, no construido ni levantado.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(Coleccion: docs/postman_collection.json. Entorno sin credenciales:) Tj
+T*
+/F1 10 Tf
+(docs/postman_environment.example.json. api_token esta vacio; requiere uno local emitido) Tj
+T*
+/F1 10 Tf
+(por CLI.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(URL publica: no configurada. No se crearon servicios cloud ni recursos de pago.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F2 11 Tf
+(DATOS PENDIENTES DE INTERVENCION HUMANA) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(Completar URL individual del video despues de grabar y confirmar semestre. No se) Tj
+T*
+/F1 10 Tf
+(inventan tutor, correo institucional, fecha ni enlaces.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F2 11 Tf
+(DOCUMENTACION) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+/F1 10 Tf
+(README.md: alcance y configuracion. docs/architecture.md: arquitectura y limites.) Tj
+T*
+/F1 10 Tf
+(docs/data-model.md: esquema y atributos. docs/security.md: controles/pendientes.) Tj
+T*
+/F1 10 Tf
+(docs/operations.md: operacion. docs/openapi.yaml: API. docs/guion-sustentacion.md:) Tj
+T*
+/F1 10 Tf
+(recorrido individual.) Tj
+T*
+/F1 10 Tf
+() Tj
+T*
+(Pagina 4 de 4) Tj
 ET
 endstream
 endobj
 xref
-0 10
+0 13
 0000000000 65535 f 
 0000000015 00000 n 
 0000000064 00000 n 
-0000000133 00000 n 
-0000000230 00000 n 
-0000000356 00000 n 
-0000002169 00000 n 
-0000002295 00000 n 
-0000004264 00000 n 
-0000004390 00000 n 
-trailer << /Size 10 /Root 1 0 R >>
+0000000140 00000 n 
+0000000237 00000 n 
+0000000339 00000 n 
+0000000475 00000 n 
+0000002818 00000 n 
+0000002954 00000 n 
+0000005297 00000 n 
+0000005434 00000 n 
+0000008010 00000 n 
+0000008148 00000 n 
+trailer << /Size 13 /Root 1 0 R >>
 startxref
-4714
+10815
 %%EOF
