@@ -11,7 +11,7 @@ header('X-Frame-Options: DENY');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
 
 $requestPath = rtrim((string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH), '/');
-$scriptDirectory = dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '/index.php'));
+$scriptDirectory = str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '/index.php')));
 $publicBase = $scriptDirectory === '/' ? '' : rtrim($scriptDirectory, '/');
 $applicationBase = $publicBase === '' ? '' : rtrim(dirname($publicBase), '/');
 $applicationBase = $applicationBase === '.' ? '' : $applicationBase;

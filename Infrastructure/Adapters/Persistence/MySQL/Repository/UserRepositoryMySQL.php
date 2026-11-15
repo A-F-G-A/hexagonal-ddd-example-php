@@ -92,6 +92,20 @@ final class UserRepositoryMySQL implements
                 count($activeAdministratorIds)
             );
 
+            $currentStatement = $this->pdo->prepare(
+                'SELECT email, password, role, status, authorization_version FROM users WHERE id = :id FOR UPDATE'
+            );
+            $currentStatement->execute(array(':id' => $user->id()->value()));
+            $current = $currentStatement->fetch();
+            if ($current === false) {
+                throw new RuntimeException('The user could not be recovered before update.');
+            }
+            $securityChanged = (string) $current['email'] !== $user->email()->value()
+                || (string) $current['password'] !== $user->password()->value()
+                || (string) $current['role'] !== $user->role()
+                || (string) $current['status'] !== $user->status();
+            $authorizationVersion = (int) $current['authorization_version'] + ($securityChanged ? 1 : 0);
+
             $dto = $this->mapper->fromModelToDto($user);
             $sql = '
                 UPDATE users
@@ -100,6 +114,7 @@ final class UserRepositoryMySQL implements
                        password = :password,
                        role = :role,
                        status = :status,
+                       authorization_version = :authorization_version,
                        updated_at = NOW()
                  WHERE id = :id
             ';
@@ -111,6 +126,7 @@ final class UserRepositoryMySQL implements
                 ':password' => $dto->password(),
                 ':role' => $dto->role(),
                 ':status' => $dto->status(),
+                ':authorization_version' => $authorizationVersion,
             ));
 
             $updatedUser = $this->getById(new UserId($dto->id()));
@@ -138,6 +154,7 @@ final class UserRepositoryMySQL implements
                 password,
                 role,
                 status,
+                authorization_version,
                 created_at,
                 updated_at
             FROM users
@@ -169,6 +186,7 @@ final class UserRepositoryMySQL implements
                 password,
                 role,
                 status,
+                authorization_version,
                 created_at,
                 updated_at
             FROM users
@@ -203,6 +221,7 @@ final class UserRepositoryMySQL implements
                 password,
                 role,
                 status,
+                authorization_version,
                 created_at,
                 updated_at
             FROM users

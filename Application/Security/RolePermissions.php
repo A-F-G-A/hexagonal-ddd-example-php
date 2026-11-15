@@ -46,6 +46,7 @@ final class RolePermissions
             $user->role(),
             $user->status(),
             $user->password()->value(),
+            (string) $user->authorizationVersion(),
         )));
     }
 

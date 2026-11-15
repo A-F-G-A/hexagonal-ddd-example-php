@@ -51,7 +51,7 @@ final class PasswordResetRepositoryMySQL implements PasswordResetPort
             }
 
             $update = $this->pdo->prepare(
-                'UPDATE users SET password = :password, updated_at = UTC_TIMESTAMP() WHERE id = :user_id'
+                'UPDATE users SET password = :password, authorization_version = authorization_version + 1, updated_at = UTC_TIMESTAMP() WHERE id = :user_id'
             );
             $update->execute(array(':password' => $passwordHash, ':user_id' => $row['user_id']));
             if ($update->rowCount() !== 1) {
