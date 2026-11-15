@@ -171,7 +171,7 @@ final class Celular
     private static function positiveDecimal(string $value, string $field, float $maximum): string
     {
         $value = trim($value);
-        if (!preg_match('/^\d{1,5}(?:\.\d{1,2})?$/D', $value)) {
+        if (!preg_match('/^\d{1,6}(?:\.\d{1,2})?$/D', $value)) {
             throw InvalidCelularException::because($field, 'debe ser un decimal positivo con hasta dos posiciones decimales.');
         }
         $number = (float) $value;

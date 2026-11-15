@@ -192,10 +192,17 @@ $disabledSessionUser = new UserModel(
 $assert(!RolePermissions::sessionIsCurrent($disabledSessionUser, $sessionFingerprint), 'deactivated account invalidates an existing session');
 $assert(!RolePermissions::sessionIsCurrent($sessionUser, ''), 'missing session fingerprint is revoked');
 $assert(!RolePermissions::sessionIsCurrent(null, $sessionFingerprint), 'deleted account revokes its existing session');
+$reactivatedSessionUser = new UserModel(
+    $sessionUser->id(), $sessionUser->name(), $sessionUser->email(), $sessionUser->password(), 'OPERADOR', UserStatusEnum::ACTIVE,
+    $sessionUser->authorizationVersion() + 1
+);
+$assert(!RolePermissions::sessionIsCurrent($reactivatedSessionUser, $sessionFingerprint), 'monotonic authorization version revokes session after account state is restored');
 $changedPasswordUser = new UserModel(
     $sessionUser->id(), $sessionUser->name(), $sessionUser->email(), UserPassword::fromPlainText('new-session-password-123'), 'OPERADOR', UserStatusEnum::ACTIVE
 );
 $assert(!RolePermissions::sessionIsCurrent($changedPasswordUser, $sessionFingerprint), 'password reset revokes existing sessions');
+$assert(!array_key_exists('password', $sessionUser->toArray()), 'domain user serialization omits password hash');
+$assert(!array_key_exists('password', UserApplicationMapper::fromModelToArray($sessionUser)), 'application user mapping omits password hash');
 
 $adminRepository = new InMemoryUserRepository();
 $admin = new UserModel(
@@ -300,6 +307,11 @@ $dualSim = new Celular(
 );
 $assert(count($dualSim->imei()) === 2, 'dual-SIM phone stores two IMEIs');
 $assert($celular->pulgadas() === '6.70', 'decimal values normalize without floating precision');
+$maxDecimalCelular = new Celular(
+    'device-max', 'Acme', array('490154203237518'), '100.00', '100000.00', 8, 256, 0,
+    'Android', 'Libre', '5G', true, true, 3, 'Qualcomm', '1000.00', true, true, false, true, 1
+);
+$assert($maxDecimalCelular->megapixeles() === '100000.00' && $maxDecimalCelular->velocidadCpu() === '1000.00', 'domain accepts documented decimal maxima representable by expanded MySQL precision');
 
 $invalidImeiRejected = false;
 try {
