@@ -137,7 +137,7 @@ components:
         marca: {type: string, maxLength: 80}
         imei: {type: array, minItems: 1, maxItems: 2, items: {type: string, pattern: '^[0-9]{15}$'}, description: Un IMEI por ranura SIM; el dominio verifica Luhn}
         pulgadas: {type: number, minimum: 0.01, maximum: 100}
-        megapixeles: {type: number, minimum: 0.01}
+        megapixeles: {type: number, minimum: 0.01, maximum: 100000}
         ram: {type: integer, minimum: 1, maximum: 65535, description: GB}
         almacenamientoPrincipal: {type: integer, minimum: 1, maximum: 65535, description: GB}
         almacenamientoSecundario: {type: integer, minimum: 0, maximum: 65535, description: GB}
@@ -148,7 +148,7 @@ components:
         bluetooth: {type: boolean}
         camaras: {type: integer, minimum: 1, maximum: 255}
         marcaCpu: {type: string, maxLength: 80}
-        velocidadCpu: {type: number, minimum: 0.01, description: GHz}
+        velocidadCpu: {type: number, minimum: 0.01, maximum: 1000, description: GHz}
         nfc: {type: boolean}
         huella: {type: boolean}
         ir: {type: boolean}

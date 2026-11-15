@@ -9,7 +9,7 @@ Plataforma web para administrar usuarios y un catálogo técnico de celulares. E
 - Dashboard con métricas calculadas desde MySQL, distribución por marca y sistema operativo, equipos recientes y actividad visible para administración/supervisión.
 - API REST `/api/v1` con tokens Bearer hasheados, vigencia, permisos por rol y respuestas JSON uniformes.
 - Roles `ADMIN`, `SUPERVISOR`, `OPERADOR` y `CONSULTA`. Los roles legados `MEMBER` y `REVIEWER` se interpretan como `OPERADOR` y `CONSULTA`.
-- Protección CSRF en formularios, cookies HttpOnly/SameSite, sesiones estrictas con expiración y regeneración, rate limit de autenticación, contraseñas con bcrypt y restablecimiento por token temporal de un solo uso.
+- Protección CSRF en formularios, cookies HttpOnly/SameSite, sesiones estrictas con expiración y regeneración, versión monotónica para revocar sesiones tras cambios de seguridad, límites persistentes para autenticación/API, contraseñas bcrypt y restablecimiento por token temporal de un solo uso.
 - Diseño adaptable con HTML, CSS y JavaScript sin framework frontend.
 
 ## Arquitectura
@@ -35,7 +35,7 @@ Las lecturas usan Queries y las escrituras Commands; web y API llaman los mismos
 1. Copia `.env.example` a `.env` y ajusta la conexión MySQL, `APP_BASE_URL`, `APP_SECRET` y SMTP. Genera un secreto propio de al menos 32 caracteres para `APP_SECRET`; no uses el valor de ejemplo.
 2. Crea/selecciona la base de datos indicada por `DB_DATABASE` y confirma que el usuario de MySQL puede crear tablas e índices.
 3. Revisa los datos existentes y respalda la base antes de migrar. La migración convierte roles legados, crea tablas y añade unicidad de email; fallará si ya hay emails duplicados.
-4. Desde la raíz, ejecuta `php bin/migrate.php`. No se ejecuta automáticamente al abrir la aplicación.
+4. Desde la raíz, ejecuta `php bin/migrate.php`. No se ejecuta automáticamente al abrir la aplicación. Esto aplica también las migraciones `002_authorization_version.sql` y `003_celular_decimal_precision.sql`; revisa antes el respaldo y el entorno.
 5. Crea el primer administrador de forma interactiva por variables de entorno y CLI:
 
    ```powershell
@@ -61,9 +61,11 @@ docker compose exec web php bin/migrate.php
 
 La aplicación queda en `http://localhost:8080`. La base usa volumen persistente `mysql_data`. Las migraciones se ejecutan de forma explícita y no borran datos automáticamente. Detener los servicios: `docker compose down` (no uses `-v` si quieres conservar la base).
 
+Los límites del API son 300 solicitudes por IP y minuto y 120 por identidad y minuto. El cliente IP se toma de `REMOTE_ADDR`; detrás de un proxy, configura el webserver para confiar solo en proxies controlados y no aceptes `X-Forwarded-For` sin validación. Limpia periódicamente cuotas viejas con `php bin/cleanup-rate-limits.php`.
+
 ## Celular: reglas y datos
 
-Los atributos de negocio, con sus nombres requeridos, son `marca`, `imei`, `pulgadas`, `megapixeles`, `ram`, `almacenamientoPrincipal`, `almacenamientoSecundario`, `sistemaOperativo`, `operador`, `tecnologiaBanda`, `wifi`, `bluetooth`, `camaras`, `marcaCpu`, `velocidadCpu`, `nfc`, `huella`, `ir`, `resisteAgua` y `cantidadSim`. `id` es adicional.
+Los atributos de negocio, con sus nombres requeridos, son `marca`, `imei`, `pulgadas`, `megapixeles`, `ram`, `almacenamientoPrincipal`, `almacenamientoSecundario`, `sistemaOperativo`, `operador`, `tecnologiaBanda`, `wifi`, `bluetooth`, `camaras`, `marcaCpu`, `velocidadCpu`, `nfc`, `huella`, `ir`, `resisteAgua` y `cantidadSim`. `id` es adicional. No se crea una relación celular-usuario porque el ejercicio no la exige.
 
 `imei` es una colección de uno o dos IMEI, uno por ranura SIM, y se guarda en `celular_imeis`. Cada IMEI debe tener 15 dígitos y pasar Luhn; es único globalmente porque identifica una radio/ranura concreta. Un equipo dual SIM mantiene ambos identificadores relacionados con el mismo celular. `cantidadSim` debe coincidir con la cantidad de IMEI. `pulgadas`, `megapixeles` y `velocidadCpu` usan decimales de dos posiciones; memorias se expresan en GB. El almacenamiento secundario acepta cero cuando no existe.
 
@@ -112,9 +114,9 @@ Listados responden `{ "data": [], "meta": { "total": 0, "page": 1, "per_page": 2
 php tests/run.php
 ```
 
-La suite actual usa doubles en memoria para reglas, permisos, mapeo, servicios y tokens; no sustituye pruebas de integración MySQL/SMTP. Para validar sintaxis en Linux: `find . -name '*.php' -not -path './Infrastructure/Adapters/Email/PHPMailer/*' -print0 | xargs -0 -n1 php -l`. GitHub Actions ejecuta la suite, lint y construcción de imagen Docker.
+La suite unitaria usa doubles en memoria para servicios, repositorios, tokens y límites; no sustituye pruebas MySQL/HTTP. La suite de integración incluye persistencia, limpieza de cuotas y una prueba concurrente con dos procesos/conexiones, pero solo debe ejecutarse en una base desechable (`RUN_DB_INTEGRATION=1 php tests/integration.php`). Para validar sintaxis en Linux: `find . -name '*.php' -not -path './Infrastructure/Adapters/Email/PHPMailer/*' -print0 | xargs -0 -n1 php -l`. El workflow declara lint, pruebas, migraciones, MySQL y Docker; consulta la ejecución del commit para conocer sus resultados reales.
 
-La auditoría de implementación y sus límites están en [seguridad y limitaciones](docs/security.md). No hay despliegue público configurado; no se inventa una URL.
+La operación segura y rollback están en [guía de operaciones](docs/operations.md); los controles y límites comprobados están en [seguridad](docs/security.md). No hay despliegue público configurado; no se inventa una URL.
 
 ## Entrega académica
 

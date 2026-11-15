@@ -1,6 +1,6 @@
 # Modelo relacional
 
-La migración `001_catalog_and_security.sql` crea el esquema base en una base vacía o amplía la tabla `users` del CRUD existente. `bin/migrate.php` aplica los archivos SQL en orden y registra cada versión; la aplicación web nunca migra por sí sola.
+Las migraciones `001` a `003` crean el esquema base, agregan una versión monotónica de autorización y amplían la precisión decimal de Celular. `bin/migrate.php` aplica los archivos SQL en orden y registra cada versión; la aplicación web nunca migra por sí sola. Los scripts manuales de rollback están bajo `Migrations/Rollback/` y requieren desplegar primero código que ya no dependa del cambio.
 
 ## Relaciones principales
 
@@ -10,11 +10,28 @@ erDiagram
     USERS ||--o{ PASSWORD_RESET_TOKENS : requests
     USERS ||--o{ ACTIVITY_LOGS : performs
     CELULARES ||--|{ CELULAR_IMEIS : identifies
+    USERS {
+        string id PK
+        string email UK
+        string role
+        string status
+        uint authorization_version
+    }
+    CELULARES {
+        string id PK
+        decimal megapixeles
+        decimal velocidad_cpu
+    }
+    CELULAR_IMEIS {
+        string imei PK
+        string celular_id FK
+        uint sim_slot
+    }
 ```
 
 ### `users`
 
-Se conserva la tabla de usuarios del repositorio. El esquema base documenta `id VARCHAR(36)`, `name VARCHAR(120)`, `email VARCHAR(254)`, `password VARCHAR(255)`, `role VARCHAR(20)`, `status VARCHAR(20)` y marcas de tiempo. `email` tiene índice único. Al migrar una base previa se preservan las filas, se amplía `role` a texto para permitir los nuevos roles y se convierten `MEMBER` a `OPERADOR` y `REVIEWER` a `CONSULTA`.
+Se conserva la tabla de usuarios del repositorio. El esquema documenta `id VARCHAR(36)`, `name VARCHAR(120)`, `email VARCHAR(254)`, `password VARCHAR(255)`, `role VARCHAR(20)`, `status VARCHAR(20)`, `authorization_version BIGINT UNSIGNED` y marcas de tiempo. `email` tiene índice único. Al migrar una base previa se preservan las filas, se amplía `role` a texto para permitir los nuevos roles y se convierten `MEMBER` a `OPERADOR` y `REVIEWER` a `CONSULTA`. La versión de autorización avanza ante cambios de email, rol, estado o contraseña.
 
 Antes de migrar una base antigua, comprueba que `users` tenga las columnas que espera el repositorio y resuelve correos duplicados. La creación del índice único se detiene ante duplicados; la migración no elimina cuentas.
 
@@ -29,17 +46,22 @@ La unicidad global se aplica al identificador IMEI de cada ranura, porque el IME
 | `marca` | `marca` | `VARCHAR(80)` |
 | `imei` | `celular_imeis.imei` (relación) | texto de 15 dígitos; 1 o 2 valores |
 | `pulgadas` | `pulgadas` | `DECIMAL(5,2)` pulgadas |
-| `megapixeles` | `megapixeles` | `DECIMAL(7,2)` MP |
+| `megapixeles` | `megapixeles` | `DECIMAL(8,2)` MP; máximo de dominio 100000.00 |
 | `ram` | `ram` | `SMALLINT UNSIGNED` GB |
 | `almacenamientoPrincipal` | `almacenamiento_principal` | `SMALLINT UNSIGNED` GB |
 | `almacenamientoSecundario` | `almacenamiento_secundario` | `SMALLINT UNSIGNED` GB; cero significa no disponible |
 | `sistemaOperativo` | `sistema_operativo` | `VARCHAR(80)` |
 | `operador` | `operador` | `VARCHAR(80)` |
 | `tecnologiaBanda` | `tecnologia_banda` | `VARCHAR(80)` |
-| `wifi`, `bluetooth`, `nfc`, `huella`, `ir`, `resisteAgua` | columnas del mismo significado | `BOOLEAN` |
+| `wifi` | `wifi` | `BOOLEAN` |
+| `bluetooth` | `bluetooth` | `BOOLEAN` |
 | `camaras` | `camaras` | `TINYINT UNSIGNED`, cantidad |
 | `marcaCpu` | `marca_cpu` | `VARCHAR(80)` |
-| `velocidadCpu` | `velocidad_cpu` | `DECIMAL(5,2)` GHz |
+| `velocidadCpu` | `velocidad_cpu` | `DECIMAL(6,2)` GHz; máximo de dominio 1000.00 |
+| `nfc` | `nfc` | `BOOLEAN` |
+| `huella` | `huella` | `BOOLEAN` |
+| `ir` | `ir` | `BOOLEAN` |
+| `resisteAgua` | `resiste_agua` | `BOOLEAN` |
 | `cantidadSim` | `cantidad_sim` | `TINYINT UNSIGNED`, 1 o 2 |
 
 `ON DELETE CASCADE` elimina IMEI al eliminar el equipo. Los índices de marca, sistema operativo, operador y fecha soportan filtros, dashboard y orden más comunes.
