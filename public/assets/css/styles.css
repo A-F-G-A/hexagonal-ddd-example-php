@@ -243,7 +243,7 @@ input[name="imei[]"] { font-family: var(--font-digits); letter-spacing: .06em; }
 /* Tables */
 .table-card { padding: 18px 0 0; overflow: hidden; }
 .table-card > .section-header { padding: 0 20px 14px; }
-.table-scroll { width: 100%; overflow-x: auto; }
+.table-scroll { position: relative; width: 100%; overflow-x: auto; }
 .data-table { width: 100%; border-collapse: collapse; text-align: left; }
 .data-table th { padding: 10px 16px; background: var(--surface-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13px; font-weight: 600; white-space: nowrap; }
 .data-table td { padding: 12px 16px; border-bottom: 1px solid var(--line-soft); color: var(--ink-soft); font-size: 14px; vertical-align: middle; }
@@ -252,7 +252,7 @@ input[name="imei[]"] { font-family: var(--font-digits); letter-spacing: .06em; }
 .data-table td strong, .data-table td small { display: block; }
 .data-table td strong { color: var(--ink); font-size: 14px; }
 .data-table td small { margin-top: 3px; color: var(--muted); font-size: 13px; }
-.data-table code { font: 500 12px var(--font-digits); color: var(--muted); }
+.data-table code { font: 500 12px var(--font-digits); color: var(--muted); white-space: nowrap; }
 .status-pill { display: inline-block; margin: 2px 2px 2px 0; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line-soft); color: var(--ink-soft); font-size: 12px; font-weight: 500; white-space: nowrap; }
 .status-pill.is-on { background: var(--signal-wash); border-color: transparent; color: var(--signal-strong); }
 .status-pill.is-off { color: var(--faint); }

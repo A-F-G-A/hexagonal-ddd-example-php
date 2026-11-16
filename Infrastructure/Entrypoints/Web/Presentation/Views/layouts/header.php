@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <title><?= htmlspecialchars($pageTitle ?? 'Gestión de celulares', ENT_QUOTES, 'UTF-8') ?></title>
-    <link rel="stylesheet" href="../Infrastructure/Entrypoints/Web/Presentation/css/styles.css">
+    <link rel="stylesheet" href="assets/css/styles.css?v=<?= (int) @filemtime(__DIR__ . '/../../../../../../public/assets/css/styles.css') ?>">
 </head>
 
 <body>
