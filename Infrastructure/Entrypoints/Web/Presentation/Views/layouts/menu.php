@@ -1,7 +1,7 @@
 <?php $authUser = $_SESSION['auth'] ?? null; $currentRoute = (string) ($_GET['route'] ?? 'home'); ?>
 <aside class="sidebar" aria-label="Navegación principal">
-    <a class="brand" href="?route=home"><span class="brand-mark">M</span><span>Móvil Admin<small>Plataforma de gestión</small></span></a>
-    <p class="nav-label">MENÚ</p>
+    <a class="brand" href="?route=home"><span class="brand-mark">M</span><span>Móvil Admin<small>Inventario de celulares</small></span></a>
+    <p class="nav-label">Menú</p>
     <nav class="side-nav">
         <?php if ($authUser && RolePermissions::allows((string) ($authUser['role'] ?? ''), 'dashboard.read')): ?>
             <a class="<?= $currentRoute === 'home' ? 'active' : '' ?>" href="?route=home"><span aria-hidden="true">▦</span> Resumen</a>
@@ -28,4 +28,4 @@
     </div>
 </aside>
 <main class="page-main">
-    <div class="page-context"><span>ESPACIO DE TRABAJO</span><span><?= htmlspecialchars($pageTitle ?? 'Panel', ENT_QUOTES, 'UTF-8') ?></span></div>
+    <div class="page-context"><span>Móvil Admin</span><span><?= htmlspecialchars($pageTitle ?? 'Panel', ENT_QUOTES, 'UTF-8') ?></span></div>

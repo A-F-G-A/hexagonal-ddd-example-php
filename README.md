@@ -117,7 +117,3 @@ php tests/run.php
 La suite unitaria usa doubles en memoria para servicios, repositorios, tokens y límites; no sustituye pruebas MySQL/HTTP. La suite de integración incluye persistencia, limpieza de cuotas y una prueba concurrente con dos procesos/conexiones, pero solo debe ejecutarse en una base desechable (`RUN_DB_INTEGRATION=1 php tests/integration.php`). Para validar sintaxis en Linux: `find . -name '*.php' -not -path './Infrastructure/Adapters/Email/PHPMailer/*' -print0 | xargs -0 -n1 php -l`. El workflow declara lint, pruebas, migraciones, MySQL y Docker; consulta la ejecución del commit para conocer sus resultados reales.
 
 La operación segura y rollback están en [guía de operaciones](docs/operations.md); los controles y límites comprobados están en [seguridad](docs/security.md). No hay despliegue público configurado; no se inventa una URL.
-
-## Entrega académica
-
-El PDF de entrega se genera con `php bin/generate-academic-pdf.php` y queda en `docs/entrega-academica.pdf`. El [guion de sustentación](docs/guion-sustentacion.md) contiene una secuencia de demostración y las decisiones a explicar. Se omite el semestre y cualquier enlace no confirmado.

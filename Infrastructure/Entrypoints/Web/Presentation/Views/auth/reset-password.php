@@ -1,8 +1,9 @@
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 <?php require __DIR__ . '/../layouts/menu.php'; ?>
-<main class="auth-box">
+<div class="auth-box">
     <h1>Crear nueva contraseña</h1>
-    <?php if (!empty($message)): ?><div class="alert-error"><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
+    <p>Usa al menos 8 caracteres. El enlace deja de funcionar al guardarla.</p>
+    <?php if (!empty($message)): ?><div class="alert-error" role="alert"><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
     <form method="POST" action="?route=auth.reset.submit">
         <input type="hidden" name="_csrf" value="<?= htmlspecialchars(Security::csrfToken(), ENT_QUOTES, 'UTF-8') ?>">
         <input type="hidden" name="token" value="<?= htmlspecialchars($token, ENT_QUOTES, 'UTF-8') ?>">
@@ -18,7 +19,7 @@
         </div>
         <button class="btn btn-primary" type="submit">Actualizar contraseña</button>
     </form>
-</main>
+</div>
 <script>
     (function () {
         const tokenField = document.querySelector('input[name="token"]');

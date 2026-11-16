@@ -2,9 +2,9 @@
 <?php require __DIR__ . '/../layouts/menu.php'; ?>
 
 <div class="page-heading">
-    <div><p class="eyebrow">INVENTARIO</p><h1>Celulares</h1><p class="muted">Consulta y administra los equipos registrados.</p></div>
+    <div><h1>Celulares</h1><p class="muted">Consulta y administra los equipos registrados.</p></div>
     <?php if (RolePermissions::allows((string) ($_SESSION['auth']['role'] ?? ''), 'celulares.create')): ?>
-        <a class="btn btn-primary" href="?route=celulares.create">＋ Registrar celular</a>
+        <a class="btn btn-primary" href="?route=celulares.create">Registrar celular</a>
     <?php endif; ?>
 </div>
 
@@ -34,7 +34,7 @@
 <section class="card table-card">
     <div class="section-header"><div><h2>Equipos</h2><p class="muted"><?= number_format($page->total()) ?> resultados</p></div><span class="result-count">Página <?= $page->page() ?> de <?= $page->pages() ?></span></div>
     <?php if ($page->items() === array()): ?>
-        <div class="empty-state"><span class="empty-icon">▣</span><h3>No hay celulares para mostrar</h3><p>Prueba quitando filtros o registra el primer equipo del inventario.</p>
+        <div class="empty-state"><span class="empty-icon" aria-hidden="true">▣</span><h3>No hay celulares para mostrar</h3><p>Prueba quitando filtros o registra el primer equipo del inventario.</p>
             <?php if (RolePermissions::allows((string) ($_SESSION['auth']['role'] ?? ''), 'celulares.create')): ?><a class="btn btn-primary" href="?route=celulares.create">Registrar celular</a><?php endif; ?>
         </div>
     <?php else: ?>
@@ -42,9 +42,9 @@
             <?php foreach ($page->items() as $celular): ?>
                 <tr>
                     <td><strong><?= htmlspecialchars($celular->marca(), ENT_QUOTES, 'UTF-8') ?></strong><small><?= htmlspecialchars($celular->sistemaOperativo(), ENT_QUOTES, 'UTF-8') ?> · <?= htmlspecialchars($celular->pulgadas(), ENT_QUOTES, 'UTF-8') ?>&Prime;</small></td>
-                    <td><code><?= htmlspecialchars(implode(' · ', $celular->imei()), ENT_QUOTES, 'UTF-8') ?></code><small><?= $celular->cantidadSim() ?> SIM</small></td>
+                    <td><?= View::imeiList($celular->imei()) ?><small><?= $celular->cantidadSim() === 2 ? 'Dos SIM' : 'Una SIM' ?></small></td>
                     <td><?= $celular->ram() ?> GB RAM<small><?= $celular->almacenamientoPrincipal() ?> GB almacenamiento</small></td>
-                    <td><span class="status-pill"><?= $celular->wifi() ? 'Wi-Fi' : 'Sin Wi-Fi' ?></span> <span class="status-pill"><?= $celular->nfc() ? 'NFC' : 'Sin NFC' ?></span></td>
+                    <td><span class="status-pill <?= $celular->wifi() ? 'is-on' : 'is-off' ?>"><?= $celular->wifi() ? 'Wi-Fi' : 'Sin Wi-Fi' ?></span> <span class="status-pill <?= $celular->nfc() ? 'is-on' : 'is-off' ?>"><?= $celular->nfc() ? 'NFC' : 'Sin NFC' ?></span></td>
                     <td><?= htmlspecialchars($celular->operador(), ENT_QUOTES, 'UTF-8') ?></td>
                     <td class="row-actions"><a class="icon-action" aria-label="Ver <?= htmlspecialchars($celular->marca(), ENT_QUOTES, 'UTF-8') ?>" href="?route=celulares.show&amp;id=<?= urlencode($celular->id()) ?>">Ver</a>
                         <?php if (RolePermissions::allows((string) ($_SESSION['auth']['role'] ?? ''), 'celulares.update')): ?><a class="icon-action" href="?route=celulares.edit&amp;id=<?= urlencode($celular->id()) ?>">Editar</a><?php endif; ?>

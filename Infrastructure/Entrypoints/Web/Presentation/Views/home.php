@@ -1,14 +1,14 @@
 <?php require __DIR__ . '/layouts/header.php'; ?>
 <?php require __DIR__ . '/layouts/menu.php'; ?>
 <div class="page-heading">
-    <div><p class="eyebrow">VISTA GENERAL</p><h1>Resumen</h1><p class="muted">Estado actual del inventario y de las cuentas de usuario.</p></div>
+    <div><h1>Resumen</h1><p class="muted">Estado actual del inventario y de las cuentas de usuario.</p></div>
 </div>
 <?php if (!empty($message)): ?><div class="alert-error" role="alert"><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
 <?php if (!empty($success)): ?><div class="alert-success" role="status"><?= htmlspecialchars($success, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
 
 <section class="metric-grid" aria-label="Indicadores principales">
-    <article class="card metric-card"><span class="metric-icon blue">▣</span><div><p>Celulares registrados</p><strong><?= number_format((int) ($dashboard['total'] ?? 0)) ?></strong></div><a href="?route=celulares.index">Ver catálogo <span aria-hidden="true">→</span></a></article>
-    <article class="card metric-card"><span class="metric-icon violet">♙</span><div><p>Usuarios activos</p><strong><?= number_format((int) ($dashboard['activeUsers'] ?? 0)) ?></strong></div><?php if (RolePermissions::allows((string) ($_SESSION['auth']['role'] ?? ''), 'users.read')): ?><a href="?route=users.index">Ver usuarios <span aria-hidden="true">→</span></a><?php else: ?><span class="metric-note">Cuentas habilitadas</span><?php endif; ?></article>
+    <article class="card metric-card"><span class="metric-icon blue">▣</span><div><p>Celulares registrados</p><strong><?= number_format((int) ($dashboard['total'] ?? 0)) ?></strong></div><a href="?route=celulares.index">Ver catálogo</a></article>
+    <article class="card metric-card"><span class="metric-icon violet">♙</span><div><p>Usuarios activos</p><strong><?= number_format((int) ($dashboard['activeUsers'] ?? 0)) ?></strong></div><?php if (RolePermissions::allows((string) ($_SESSION['auth']['role'] ?? ''), 'users.read')): ?><a href="?route=users.index">Ver usuarios</a><?php else: ?><span class="metric-note">Cuentas habilitadas</span><?php endif; ?></article>
     <article class="card metric-card"><span class="metric-icon green">⌁</span><div><p>Equipos con NFC</p><strong><?= number_format((int) (($dashboard['features']['nfc'] ?? 0))) ?></strong></div><span class="metric-note">De <?= number_format((int) ($dashboard['total'] ?? 0)) ?> equipos</span></article>
     <article class="card metric-card"><span class="metric-icon amber">◉</span><div><p>Resistentes al agua</p><strong><?= number_format((int) (($dashboard['features']['resiste_agua'] ?? 0))) ?></strong></div><span class="metric-note">Dato del catálogo</span></article>
 </section>
@@ -30,9 +30,9 @@
     </section>
 </div>
 
-<section class="card recent-card"><div class="section-header"><div><h2>Registros recientes</h2><p class="muted">Últimos celulares incorporados al catálogo</p></div><a href="?route=celulares.index">Ver todos →</a></div>
-    <?php if (empty($dashboard['recent'])): ?><div class="empty-state compact"><span class="empty-icon">▣</span><h3>El catálogo está listo para empezar</h3><p>Cuando se registren equipos, aparecerán aquí.</p><?php if (RolePermissions::allows((string) ($_SESSION['auth']['role'] ?? ''), 'celulares.create')): ?><a class="btn btn-primary" href="?route=celulares.create">Registrar celular</a><?php endif; ?></div>
-    <?php else: ?><div class="recent-list"><?php foreach ($dashboard['recent'] as $item): ?><a href="?route=celulares.show&amp;id=<?= urlencode($item->id()) ?>"><span class="device-avatar small">▣</span><span><strong><?= htmlspecialchars($item->marca(), ENT_QUOTES, 'UTF-8') ?></strong><small><?= htmlspecialchars($item->sistemaOperativo(), ENT_QUOTES, 'UTF-8') ?> · <?= htmlspecialchars(implode(' · ', $item->imei()), ENT_QUOTES, 'UTF-8') ?></small></span><span class="recent-arrow">→</span></a><?php endforeach; ?></div><?php endif; ?>
+<section class="card recent-card"><div class="section-header"><div><h2>Registros recientes</h2><p class="muted">Últimos celulares incorporados al catálogo</p></div><a href="?route=celulares.index">Ver todos</a></div>
+    <?php if (empty($dashboard['recent'])): ?><div class="empty-state compact"><span class="empty-icon" aria-hidden="true">▣</span><h3>Aún no hay celulares registrados</h3><p>Cuando se registren equipos, aparecerán aquí.</p><?php if (RolePermissions::allows((string) ($_SESSION['auth']['role'] ?? ''), 'celulares.create')): ?><a class="btn btn-primary" href="?route=celulares.create">Registrar celular</a><?php endif; ?></div>
+    <?php else: ?><div class="recent-list"><?php foreach ($dashboard['recent'] as $item): ?><a href="?route=celulares.show&amp;id=<?= urlencode($item->id()) ?>"><span class="device-avatar small" aria-hidden="true">▣</span><span><strong><?= htmlspecialchars($item->marca(), ENT_QUOTES, 'UTF-8') ?></strong><small><?= htmlspecialchars($item->sistemaOperativo(), ENT_QUOTES, 'UTF-8') ?> <?= View::imeiList($item->imei()) ?></small></span></a><?php endforeach; ?></div><?php endif; ?>
 </section>
 
 <?php if (!empty($dashboard['activity'])): ?>
