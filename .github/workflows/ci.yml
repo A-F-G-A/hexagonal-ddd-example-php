@@ -41,7 +41,7 @@ jobs:
       APP_BASE_URL: http://localhost
       RUN_DB_INTEGRATION: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
